@@ -43,7 +43,7 @@
       this.button2 = new System.Windows.Forms.Button();
       this.btnUpload = new System.Windows.Forms.Button();
       this.btnTranslate = new System.Windows.Forms.Button();
-      this.progressBar = new System.Windows.Forms.ProgressBar();
+      this.progressBar = new bucket.manager.Utils.CustomProgressBar();
       this.menuTranslate = new System.Windows.Forms.ContextMenuStrip(this.components);
       this.btnDeleteObject = new System.Windows.Forms.Button();
       this.groupBox1.SuspendLayout();
@@ -197,6 +197,8 @@
       // 
       this.progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+      this.progressBar.CustomText = null;
+      this.progressBar.DisplayStyle = bucket.manager.Utils.ProgressBarDisplayText.Percentage;
       this.progressBar.Location = new System.Drawing.Point(12, 607);
       this.progressBar.Name = "progressBar";
       this.progressBar.Size = new System.Drawing.Size(670, 23);
@@ -257,7 +259,7 @@
     private System.Windows.Forms.Button button2;
     private System.Windows.Forms.Button btnUpload;
     private System.Windows.Forms.Button btnTranslate;
-    private System.Windows.Forms.ProgressBar progressBar;
+    private Utils.CustomProgressBar progressBar;
     private System.Windows.Forms.ContextMenuStrip menuTranslate;
     private System.Windows.Forms.Button btnDeleteObject;
   }

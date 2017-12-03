@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using bucket.manager.Utils;
 
 namespace bucket.manager
 {
@@ -122,7 +123,9 @@ namespace bucket.manager
       long end = chunkSize;
       string sessionId = Guid.NewGuid().ToString();
 
+      progressBar.DisplayStyle = ProgressBarDisplayText.CustomText;
       progressBar.Show();
+      progressBar.Value = 0;
       progressBar.Minimum = 0;
       progressBar.Maximum = (int)numberOfChunks;
 
@@ -146,7 +149,8 @@ namespace bucket.manager
           chunkSize = ((start + chunkSize > fileSize) ? fileSize - start - 1 : chunkSize);
           end = start + chunkSize;
 
-          progressBar.PerformStep();
+          progressBar.CustomText = string.Format("{0} Mb uploaded...", (chunkIndex * chunkSize) / 1024 / 1024);
+          progressBar.Value = chunkIndex;
         }
       }
       progressBar.Hide();

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace bucket.manager
+namespace bucket.manager.Utils
 {
   public static class Utils
   {
