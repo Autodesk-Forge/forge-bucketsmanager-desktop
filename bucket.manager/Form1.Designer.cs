@@ -154,7 +154,6 @@ namespace bucket.manager
       this.txtClientSecret.PasswordChar = '*';
       this.txtClientSecret.Size = new System.Drawing.Size(193, 20);
       this.txtClientSecret.TabIndex = 4;
-      this.txtClientSecret.Text = "GahFcj4rLYNhOigg";
       // 
       // label2
       // 
@@ -174,7 +173,6 @@ namespace bucket.manager
       this.txtClientId.Name = "txtClientId";
       this.txtClientId.Size = new System.Drawing.Size(296, 20);
       this.txtClientId.TabIndex = 2;
-      this.txtClientId.Text = "Ips4EoAPvHyuRKmakv84GOaBCbg8mWtj";
       // 
       // btnRefreshToken
       // 
@@ -237,7 +235,7 @@ namespace bucket.manager
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
       this.panel1.Location = new System.Drawing.Point(242, 95);
-      this.panel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+      this.panel1.Margin = new System.Windows.Forms.Padding(2);
       this.panel1.Name = "panel1";
       this.panel1.Size = new System.Drawing.Size(446, 505);
       this.panel1.TabIndex = 9;
