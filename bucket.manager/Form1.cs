@@ -1,4 +1,22 @@
-﻿using Autodesk.Forge;
+﻿/////////////////////////////////////////////////////////////////////
+// Copyright (c) Autodesk, Inc. All rights reserved
+// Written by Forge Partner Development
+//
+// Permission to use, copy, modify, and distribute this software in
+// object code form for any purpose and without fee is hereby granted,
+// provided that the above copyright notice appears in all copies and
+// that both that copyright notice and the limited warranty and
+// restricted rights notice below appear in all supporting
+// documentation.
+//
+// AUTODESK PROVIDES THIS PROGRAM "AS IS" AND WITH ALL FAULTS.
+// AUTODESK SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTY OF
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE.  AUTODESK, INC.
+// DOES NOT WARRANT THAT THE OPERATION OF THE PROGRAM WILL BE
+// UNINTERRUPTED OR ERROR FREE.
+/////////////////////////////////////////////////////////////////////
+
+using Autodesk.Forge;
 using Autodesk.Forge.Model;
 using bucket.manager.Utils;
 using CefSharp;
@@ -27,15 +45,13 @@ namespace bucket.manager
     public void InitBrowser()
     {
       Cef.Initialize(new CefSettings());
-      browser = new ChromiumWebBrowser("file:///HTML/Viewer.html");
+      browser = new ChromiumWebBrowser("file:///HTML/Viewer.html"); // CefSharp needs a initial page...
 
       browser.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
           | System.Windows.Forms.AnchorStyles.Left)
           | System.Windows.Forms.AnchorStyles.Right)));
-      //browser.Location = new System.Drawing.Point(323, 117);
       browser.MinimumSize = new System.Drawing.Size(20, 20);
       browser.Name = "webBrowser1";
-      //browser.Size = new System.Drawing.Size(594, 622);
       browser.TabIndex = 1;
       browser.Dock = DockStyle.Fill;
       panel1.Controls.Add(browser);
@@ -47,6 +63,8 @@ namespace bucket.manager
 
     private async void btnAuthorize_Click(object sender, EventArgs e)
     {
+      if (string.IsNullOrWhiteSpace(txtClientId.Text) || string.IsNullOrWhiteSpace(txtClientSecret.Text)) return;
+
       // get the access token
       TwoLeggedApi oAuth = new TwoLeggedApi();
       dynamic token = await oAuth.AuthenticateAsync(
@@ -67,7 +85,7 @@ namespace bucket.manager
 
     void tickTokenTimer(object sender, EventArgs e)
     {
-      // update the time left
+      // update the time left on the access token
       double secondsLeft = (_expiresAt - DateTime.Now).TotalSeconds;
       txtTimeout.Text = secondsLeft.ToString("0");
       txtTimeout.BackColor = (secondsLeft < 60 ? System.Drawing.Color.Red : System.Drawing.SystemColors.Control);
@@ -87,26 +105,41 @@ namespace bucket.manager
 
       BucketsApi bucketApi = new BucketsApi();
       bucketApi.Configuration.AccessToken = AccessToken;
-      dynamic buckets = await bucketApi.GetBucketsAsync(null, 100);
-         
-      foreach (KeyValuePair<string, dynamic> bucket in new DynamicDictionaryItems(buckets.items))
-      {
-        TreeNode nodeBucket = new TreeNode(bucket.Value.bucketKey);
-        nodeBucket.Tag = bucket.Value.bucketKey;
-        treeBuckets.Nodes.Add(nodeBucket);
-      }
 
+      // control GetBucket pagination
+      string lastBucket = null;
+      int itemCount = 0;
+
+      // get buckets until returned list length < 100
+      do
+      {
+        dynamic buckets = await bucketApi.GetBucketsAsync(null, 100, lastBucket);
+        itemCount += buckets.items.Count;
+
+        foreach (KeyValuePair<string, dynamic> bucket in new DynamicDictionaryItems(buckets.items))
+        {
+          TreeNode nodeBucket = new TreeNode(bucket.Value.bucketKey);
+          nodeBucket.Tag = bucket.Value.bucketKey;
+          treeBuckets.Nodes.Add(nodeBucket);
+
+          lastBucket = bucket.Value.bucketKey; // after the loop, this will contain the last bucketKey
+        }
+      } while ((itemCount % 100) == 0); // while GetBuckets returns 100, we need to get next page
+
+      // for each bucket, show the objects
       foreach (TreeNode n in treeBuckets.Nodes)
-        if (n!=null) // async?
+        if (n != null) // async?
           await ShowBucketObjects(n);
     }
 
     private async Task ShowBucketObjects(TreeNode nodeBucket)
     {
       nodeBucket.Nodes.Clear();
-      ObjectsApi objects = new ObjectsApi();
 
+      ObjectsApi objects = new ObjectsApi();
       objects.Configuration.AccessToken = AccessToken;
+
+      // show objects on the given TreeNode
       var objectsList = await objects.GetObjectsAsync((string)nodeBucket.Tag);
       foreach (KeyValuePair<string, dynamic> objInfo in new DynamicDictionaryItems(objectsList.items))
       {
@@ -116,6 +149,8 @@ namespace bucket.manager
       }
     }
 
+    private const int UPLOAD_CHUNK_SIZE = 2; // Mb
+
     private async void btnUpload_Click(object sender, EventArgs e)
     {
       if (treeBuckets.SelectedNode == null || treeBuckets.SelectedNode.Level != 0)
@@ -123,59 +158,80 @@ namespace bucket.manager
         MessageBox.Show("Please select a bucket", "Bucket required", MessageBoxButtons.OK, MessageBoxIcon.Error);
         return;
       }
+      string bucketKey = treeBuckets.SelectedNode.Text;
 
+      // ask user to select file
       OpenFileDialog formSelectFile = new OpenFileDialog();
       formSelectFile.Multiselect = false;
       if (formSelectFile.ShowDialog() != DialogResult.OK) return;
       string filePath = formSelectFile.FileName;
       string objectKey = Path.GetFileName(filePath);
 
-      string bucketKey = treeBuckets.SelectedNode.Text;
-
       ObjectsApi objects = new ObjectsApi();
       objects.Configuration.AccessToken = AccessToken;
 
+      // get file size
       long fileSize = (new FileInfo(filePath)).Length;
-      long chunkSize = 2 * 1024 * 1024; // 2 Mb
-      long numberOfChunks = (long)Math.Round((double)(fileSize / chunkSize)) + 1;
 
-      long start = 0;
-      chunkSize = (numberOfChunks > 1 ? chunkSize : fileSize);
-      long end = chunkSize;
-      string sessionId = Guid.NewGuid().ToString();
-
+      // show progress bar for upload
       progressBar.DisplayStyle = ProgressBarDisplayText.CustomText;
       progressBar.Show();
       progressBar.Value = 0;
       progressBar.Minimum = 0;
-      progressBar.Maximum = (int)numberOfChunks;
-
       progressBar.CustomText = "Preparing to upload file...";
 
-      using (BinaryReader reader = new BinaryReader(new FileStream(filePath, FileMode.Open)))
+      // decide if upload direct or resumable (by chunks)
+      if (fileSize > UPLOAD_CHUNK_SIZE * 1024 * 1024) // upload in chunks
       {
-        for (int chunkIndex = 0; chunkIndex < numberOfChunks; chunkIndex++)
+        long chunkSize = 2 * 1024 * 1024; // 2 Mb
+        long numberOfChunks = (long)Math.Round((double)(fileSize / chunkSize)) + 1;
+
+        progressBar.Maximum = (int)numberOfChunks;
+
+        long start = 0;
+        chunkSize = (numberOfChunks > 1 ? chunkSize : fileSize);
+        long end = chunkSize;
+        string sessionId = Guid.NewGuid().ToString();
+        
+        // upload one chunk at a time
+        using (BinaryReader reader = new BinaryReader(new FileStream(filePath, FileMode.Open)))
         {
-          string range = string.Format("bytes {0}-{1}/{2}", start, end, fileSize);
+          for (int chunkIndex = 0; chunkIndex < numberOfChunks; chunkIndex++)
+          {
+            string range = string.Format("bytes {0}-{1}/{2}", start, end, fileSize);
 
-          long numberOfBytes = chunkSize + 1;
-          byte[] fileBytes = new byte[numberOfBytes];
-          MemoryStream memoryStream = new MemoryStream(fileBytes);
-          reader.BaseStream.Seek((int)start, SeekOrigin.Begin);
-          int count = reader.Read(fileBytes, 0, (int)numberOfBytes);
-          memoryStream.Write(fileBytes, 0, (int)numberOfBytes);
-          memoryStream.Position = 0;
+            long numberOfBytes = chunkSize + 1;
+            byte[] fileBytes = new byte[numberOfBytes];
+            MemoryStream memoryStream = new MemoryStream(fileBytes);
+            reader.BaseStream.Seek((int)start, SeekOrigin.Begin);
+            int count = reader.Read(fileBytes, 0, (int)numberOfBytes);
+            memoryStream.Write(fileBytes, 0, (int)numberOfBytes);
+            memoryStream.Position = 0;
 
-          dynamic chunkUploadResponse = await objects.UploadChunkAsync(bucketKey, objectKey, (int)numberOfBytes, range, sessionId, memoryStream);
+            dynamic chunkUploadResponse = await objects.UploadChunkAsync(bucketKey, objectKey, (int)numberOfBytes, range, sessionId, memoryStream);
 
-          start = end + 1;
-          chunkSize = ((start + chunkSize > fileSize) ? fileSize - start - 1 : chunkSize);
-          end = start + chunkSize;
+            start = end + 1;
+            chunkSize = ((start + chunkSize > fileSize) ? fileSize - start - 1 : chunkSize);
+            end = start + chunkSize;
 
-          progressBar.CustomText = string.Format("{0} Mb uploaded...", (chunkIndex * chunkSize) / 1024 / 1024);
-          progressBar.Value = chunkIndex;
+            progressBar.CustomText = string.Format("{0} Mb uploaded...", (chunkIndex * chunkSize) / 1024 / 1024);
+            progressBar.Value = chunkIndex;
+          }
         }
       }
+      else // upload in a single call
+      {
+        using (StreamReader streamReader = new StreamReader(filePath))
+        {
+          progressBar.Value = 50; // random...
+          progressBar.Maximum = 100;
+          dynamic uploadedObj = await objects.UploadObjectAsync(bucketKey,
+                 objectKey, (int)streamReader.BaseStream.Length, streamReader.BaseStream,
+                 "application/octet-stream");
+        }
+
+      }
+
       progressBar.Hide();
       await ShowBucketObjects(treeBuckets.SelectedNode);
       treeBuckets.SelectedNode.Expand();
@@ -183,11 +239,14 @@ namespace bucket.manager
 
     private void Form1_Load(object sender, EventArgs e)
     {
-      //btnAuthorize_Click(null, null);
+      // authenticate when starts
+      btnAuthorize_Click(null, null);
     }
 
     private void btnTranslate_Click(object sender, EventArgs e)
     {
+      // show menu with translation options
+      // ToDo: include other translation formats
       menuTranslate.Items.Clear();
       menuTranslate.Items.Add("Viewer (SVF)", null, onClickTranslate);
       menuTranslate.Show(btnTranslate, new Point(0, btnTranslate.Height));
@@ -195,10 +254,18 @@ namespace bucket.manager
 
     private async void onClickTranslate(object sender, EventArgs e)
     {
+      // for now, just one translation at a time
       if (_translationTimer.Enabled) return;
 
-      string urn = (string)treeBuckets.SelectedNode.Tag; 
+      // check level 1 of objects
+      if (treeBuckets.SelectedNode == null || treeBuckets.SelectedNode.Level != 1)
+      {
+        MessageBox.Show("Please select an object", "Objects required", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        return;
+      }
+      string urn = (string)treeBuckets.SelectedNode.Tag;
 
+      // prepare a SVF translation
       List<JobPayloadItem> outputs = new List<JobPayloadItem>()
       {
        new JobPayloadItem(
@@ -215,16 +282,19 @@ namespace bucket.manager
       //else
       //  job = new JobPayload(new JobPayloadInput(objModel.objectKey, true, objModel.rootFilename), new JobPayloadOutput(outputs));
 
+      // start progress bar for translation
       progressBar.Show();
+      progressBar.Value = 0;
       progressBar.Minimum = 0;
       progressBar.Maximum = 100;
       progressBar.CustomText = "Starting translation job...";
 
+      // start translation job
       DerivativesApi derivative = new DerivativesApi();
       derivative.Configuration.AccessToken = AccessToken;
       dynamic jobPosted = await derivative.TranslateAsync(job);
 
-      // keep track on time
+      // start a monitor job to follow the translation
       _translationTimer.Tick += new EventHandler(isTranslationReady);
       _translationTimer.Tag = urn;
       _translationTimer.Interval = 5000;
@@ -235,11 +305,17 @@ namespace bucket.manager
     {
       DerivativesApi derivative = new DerivativesApi();
       derivative.Configuration.AccessToken = AccessToken;
+
+      // get the translation manifest
       dynamic manifest = await derivative.GetManifestAsync((string)_translationTimer.Tag);
       int progress = (string.IsNullOrWhiteSpace(Regex.Match(manifest.progress, @"\d+").Value) ? 100 : Int32.Parse(Regex.Match(manifest.progress, @"\d+").Value));
+
+      // for better UX, show a small number of progress (instead zero)
       progressBar.Value = (progress == 0 ? 10 : progress);
       progressBar.CustomText = string.Format("Translation in progress: {0}", progress);
       Debug.WriteLine(progress);
+
+      // if ready, hide everything
       if (progress >= 100)
       {
         progressBar.Hide();
@@ -249,15 +325,18 @@ namespace bucket.manager
 
     private async void btnDeleteObject_Click(object sender, EventArgs e)
     {
+      // treeBuckets level 1 are for Objects
       if (treeBuckets.SelectedNode == null || treeBuckets.SelectedNode.Level != 1)
       {
         MessageBox.Show("Please select an object", "Objects required", MessageBoxButtons.OK, MessageBoxIcon.Error);
         return;
       }
 
-      if (MessageBox.Show("This objects will be permantly delete, confirm?", "Are you sure?", MessageBoxButtons.YesNo, MessageBoxIcon.Question)!= DialogResult.Yes)
+      if (MessageBox.Show("This objects will be permantly delete, confirm?", "Are you sure?", 
+        MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
         return;
 
+      // call API to delete object on the bucket
       ObjectsApi objects = new ObjectsApi();
       objects.Configuration.AccessToken = AccessToken;
       await objects.DeleteObjectAsync((string)treeBuckets.SelectedNode.Parent.Tag, (string)treeBuckets.SelectedNode.Text);
@@ -266,6 +345,7 @@ namespace bucket.manager
 
     private void Form1_FormClosing(object sender, FormClosingEventArgs e)
     {
+      // required by CefSharp Browser
       Cef.Shutdown();
     }
 
@@ -273,8 +353,9 @@ namespace bucket.manager
     {
       if (treeBuckets.SelectedNode == null || treeBuckets.SelectedNode.Level != 1) return;
 
+      // this basic HTML page to show the model passing URN & Access Token
       browser.Load(string.Format("file:///HTML/Viewer.html?URN={0}&Token={1}", treeBuckets.SelectedNode.Tag, AccessToken));
-      browser.ShowDevTools();
+      // browser.ShowDevTools();
     }
   }
 }

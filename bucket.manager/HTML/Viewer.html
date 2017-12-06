@@ -29,7 +29,7 @@
 
   <!-- Developer JS -->
   <script>
-    // https://stackoverflow.com/a/901144
+    // getParameterByName from https://stackoverflow.com/a/901144
     function getParameterByName(name, url) {
       if (!url) url = window.location.href;
       name = name.replace(/[\[\]]/g, "\\$&");
@@ -47,6 +47,7 @@
       showModel(urn, token);
     }
 
+    // Viewer Application tutorial 
     var viewerApp;
     function showModel(urn, token) {
       var options = {
