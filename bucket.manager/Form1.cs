@@ -1,15 +1,16 @@
 ﻿using Autodesk.Forge;
+using Autodesk.Forge.Model;
+using bucket.manager.Utils;
+using CefSharp;
+using CefSharp.WinForms;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
-using Autodesk.Forge.Model;
-using System.IO;
-using System.Linq;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using bucket.manager.Utils;
+using System.Windows.Forms;
 
 namespace bucket.manager
 {
@@ -18,6 +19,26 @@ namespace bucket.manager
     public Form1()
     {
       InitializeComponent();
+      InitBrowser();
+    }
+
+    public ChromiumWebBrowser browser;
+
+    public void InitBrowser()
+    {
+      Cef.Initialize(new CefSettings());
+      browser = new ChromiumWebBrowser("file:///HTML/Viewer.html");
+
+      browser.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+          | System.Windows.Forms.AnchorStyles.Left)
+          | System.Windows.Forms.AnchorStyles.Right)));
+      //browser.Location = new System.Drawing.Point(323, 117);
+      browser.MinimumSize = new System.Drawing.Size(20, 20);
+      browser.Name = "webBrowser1";
+      //browser.Size = new System.Drawing.Size(594, 622);
+      browser.TabIndex = 1;
+      browser.Dock = DockStyle.Fill;
+      panel1.Controls.Add(browser);
     }
 
     private Timer _tokenTimer = new Timer();
@@ -129,6 +150,8 @@ namespace bucket.manager
       progressBar.Minimum = 0;
       progressBar.Maximum = (int)numberOfChunks;
 
+      progressBar.CustomText = "Preparing to upload file...";
+
       using (BinaryReader reader = new BinaryReader(new FileStream(filePath, FileMode.Open)))
       {
         for (int chunkIndex = 0; chunkIndex < numberOfChunks; chunkIndex++)
@@ -195,6 +218,7 @@ namespace bucket.manager
       progressBar.Show();
       progressBar.Minimum = 0;
       progressBar.Maximum = 100;
+      progressBar.CustomText = "Starting translation job...";
 
       DerivativesApi derivative = new DerivativesApi();
       derivative.Configuration.AccessToken = AccessToken;
@@ -214,6 +238,7 @@ namespace bucket.manager
       dynamic manifest = await derivative.GetManifestAsync((string)_translationTimer.Tag);
       int progress = (string.IsNullOrWhiteSpace(Regex.Match(manifest.progress, @"\d+").Value) ? 100 : Int32.Parse(Regex.Match(manifest.progress, @"\d+").Value));
       progressBar.Value = (progress == 0 ? 10 : progress);
+      progressBar.CustomText = string.Format("Translation in progress: {0}", progress);
       Debug.WriteLine(progress);
       if (progress >= 100)
       {
@@ -237,6 +262,19 @@ namespace bucket.manager
       objects.Configuration.AccessToken = AccessToken;
       await objects.DeleteObjectAsync((string)treeBuckets.SelectedNode.Parent.Tag, (string)treeBuckets.SelectedNode.Text);
       await ShowBucketObjects(treeBuckets.SelectedNode.Parent);
+    }
+
+    private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+    {
+      Cef.Shutdown();
+    }
+
+    private void treeBuckets_AfterSelect(object sender, TreeViewEventArgs e)
+    {
+      if (treeBuckets.SelectedNode == null || treeBuckets.SelectedNode.Level != 1) return;
+
+      browser.Load(string.Format("file:///HTML/Viewer.html?URN={0}&Token={1}", treeBuckets.SelectedNode.Tag, AccessToken));
+      browser.ShowDevTools();
     }
   }
 }
