@@ -53,7 +53,7 @@ namespace bucket.manager
       this.txtTimeout = new System.Windows.Forms.TextBox();
       this.txtAccessToken = new System.Windows.Forms.TextBox();
       this.label4 = new System.Windows.Forms.Label();
-      this.btnAuthorize = new System.Windows.Forms.Button();
+      this.btnAuthenticate = new System.Windows.Forms.Button();
       this.txtClientSecret = new System.Windows.Forms.TextBox();
       this.label2 = new System.Windows.Forms.Label();
       this.txtClientId = new System.Windows.Forms.TextBox();
@@ -94,7 +94,7 @@ namespace bucket.manager
       this.groupBox1.Controls.Add(this.txtTimeout);
       this.groupBox1.Controls.Add(this.txtAccessToken);
       this.groupBox1.Controls.Add(this.label4);
-      this.groupBox1.Controls.Add(this.btnAuthorize);
+      this.groupBox1.Controls.Add(this.btnAuthenticate);
       this.groupBox1.Controls.Add(this.txtClientSecret);
       this.groupBox1.Controls.Add(this.label2);
       this.groupBox1.Controls.Add(this.txtClientId);
@@ -135,16 +135,16 @@ namespace bucket.manager
       this.label4.TabIndex = 8;
       this.label4.Text = "Access Token:";
       // 
-      // btnAuthorize
+      // btnAuthenticate
       // 
-      this.btnAuthorize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnAuthorize.Location = new System.Drawing.Point(583, 18);
-      this.btnAuthorize.Name = "btnAuthorize";
-      this.btnAuthorize.Size = new System.Drawing.Size(86, 23);
-      this.btnAuthorize.TabIndex = 5;
-      this.btnAuthorize.Text = "Authenticate";
-      this.btnAuthorize.UseVisualStyleBackColor = true;
-      this.btnAuthorize.Click += new System.EventHandler(this.btnAuthorize_Click);
+      this.btnAuthenticate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnAuthenticate.Location = new System.Drawing.Point(583, 18);
+      this.btnAuthenticate.Name = "btnAuthenticate";
+      this.btnAuthenticate.Size = new System.Drawing.Size(86, 23);
+      this.btnAuthenticate.TabIndex = 5;
+      this.btnAuthenticate.Text = "Authenticate";
+      this.btnAuthenticate.UseVisualStyleBackColor = true;
+      this.btnAuthenticate.Click += new System.EventHandler(this.btnAuthenticate_Click);
       // 
       // txtClientSecret
       // 
@@ -284,7 +284,7 @@ namespace bucket.manager
     private System.Windows.Forms.GroupBox groupBox1;
     private System.Windows.Forms.TextBox txtAccessToken;
     private System.Windows.Forms.Label label4;
-    private System.Windows.Forms.Button btnAuthorize;
+    private System.Windows.Forms.Button btnAuthenticate;
     private System.Windows.Forms.TextBox txtClientSecret;
     private System.Windows.Forms.Label label2;
     private System.Windows.Forms.TextBox txtClientId;

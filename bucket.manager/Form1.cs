@@ -61,7 +61,7 @@ namespace bucket.manager
     private Timer _translationTimer = new Timer();
     private DateTime _expiresAt;
 
-    private async void btnAuthorize_Click(object sender, EventArgs e)
+    private async void btnAuthenticate_Click(object sender, EventArgs e)
     {
       if (string.IsNullOrWhiteSpace(txtClientId.Text) || string.IsNullOrWhiteSpace(txtClientSecret.Text)) return;
 
@@ -240,7 +240,7 @@ namespace bucket.manager
     private void Form1_Load(object sender, EventArgs e)
     {
       // authenticate when starts
-      btnAuthorize_Click(null, null);
+      btnAuthenticate_Click(null, null);
     }
 
     private void btnTranslate_Click(object sender, EventArgs e)
