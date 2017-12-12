@@ -71,7 +71,7 @@ namespace bucket.manager
         txtClientId.Text,
         txtClientSecret.Text,
         oAuthConstants.CLIENT_CREDENTIALS,
-        new Scope[] { Scope.BucketRead, Scope.DataRead, Scope.DataWrite });
+        new Scope[] { Scope.BucketRead, Scope.BucketCreate, Scope.DataRead, Scope.DataWrite });
       txtAccessToken.Text = token.access_token;
       _expiresAt = DateTime.Now.AddSeconds(token.expires_in);
 
@@ -192,7 +192,7 @@ namespace bucket.manager
         chunkSize = (numberOfChunks > 1 ? chunkSize : fileSize);
         long end = chunkSize;
         string sessionId = Guid.NewGuid().ToString();
-        
+
         // upload one chunk at a time
         using (BinaryReader reader = new BinaryReader(new FileStream(filePath, FileMode.Open)))
         {
@@ -332,7 +332,7 @@ namespace bucket.manager
         return;
       }
 
-      if (MessageBox.Show("This objects will be permantly delete, confirm?", "Are you sure?", 
+      if (MessageBox.Show("This objects will be permantly delete, confirm?", "Are you sure?",
         MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
         return;
 
@@ -356,6 +356,20 @@ namespace bucket.manager
       // this basic HTML page to show the model passing URN & Access Token
       browser.Load(string.Format("file:///HTML/Viewer.html?URN={0}&Token={1}", treeBuckets.SelectedNode.Tag, AccessToken));
       // browser.ShowDevTools();
+    }
+
+    private async void btnCreateBucket_Click(object sender, EventArgs e)
+    {
+      string bucketKey = string.Empty;
+      if (Prompt.ShowDialog("Enter bucket name: ", "Create new bucket", txtClientId.Text.ToLower() + DateTime.Now.Ticks.ToString(), out bucketKey) == DialogResult.OK)
+      {
+        BucketsApi buckets = new BucketsApi();
+        buckets.Configuration.AccessToken = AccessToken;
+        PostBucketsPayload bucketPayload = new PostBucketsPayload(bucketKey.ToLower(), null, PostBucketsPayload.PolicyKeyEnum.Transient);
+        await buckets.CreateBucketAsync(bucketPayload);
+
+        btnRefreshToken_Click(null, null);
+      }
     }
   }
 }

@@ -58,7 +58,7 @@ namespace bucket.manager
       this.label2 = new System.Windows.Forms.Label();
       this.txtClientId = new System.Windows.Forms.TextBox();
       this.btnRefreshToken = new System.Windows.Forms.Button();
-      this.button2 = new System.Windows.Forms.Button();
+      this.btnCreateBucket = new System.Windows.Forms.Button();
       this.btnUpload = new System.Windows.Forms.Button();
       this.btnTranslate = new System.Windows.Forms.Button();
       this.menuTranslate = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -184,14 +184,15 @@ namespace bucket.manager
       this.btnRefreshToken.UseVisualStyleBackColor = true;
       this.btnRefreshToken.Click += new System.EventHandler(this.btnRefreshToken_Click);
       // 
-      // button2
+      // btnCreateBucket
       // 
-      this.button2.Location = new System.Drawing.Point(140, 95);
-      this.button2.Name = "button2";
-      this.button2.Size = new System.Drawing.Size(97, 23);
-      this.button2.TabIndex = 4;
-      this.button2.Text = "Create Bucket";
-      this.button2.UseVisualStyleBackColor = true;
+      this.btnCreateBucket.Location = new System.Drawing.Point(140, 95);
+      this.btnCreateBucket.Name = "btnCreateBucket";
+      this.btnCreateBucket.Size = new System.Drawing.Size(97, 23);
+      this.btnCreateBucket.TabIndex = 4;
+      this.btnCreateBucket.Text = "Create Bucket";
+      this.btnCreateBucket.UseVisualStyleBackColor = true;
+      this.btnCreateBucket.Click += new System.EventHandler(this.btnCreateBucket_Click);
       // 
       // btnUpload
       // 
@@ -262,7 +263,7 @@ namespace bucket.manager
       this.Controls.Add(this.progressBar);
       this.Controls.Add(this.btnTranslate);
       this.Controls.Add(this.btnUpload);
-      this.Controls.Add(this.button2);
+      this.Controls.Add(this.btnCreateBucket);
       this.Controls.Add(this.btnRefreshToken);
       this.Controls.Add(this.groupBox1);
       this.Controls.Add(this.treeBuckets);
@@ -290,7 +291,7 @@ namespace bucket.manager
     private System.Windows.Forms.TextBox txtClientId;
     private System.Windows.Forms.TextBox txtTimeout;
     private System.Windows.Forms.Button btnRefreshToken;
-    private System.Windows.Forms.Button button2;
+    private System.Windows.Forms.Button btnCreateBucket;
     private System.Windows.Forms.Button btnUpload;
     private System.Windows.Forms.Button btnTranslate;
     private Utils.CustomProgressBar progressBar;
