@@ -379,6 +379,7 @@ namespace bucket.manager
 
     private async void btnDownloadSVF_Click(object sender, EventArgs e)
     {
+      // ensure the selected node is an object and get its URN
       if (treeBuckets.SelectedNode == null || treeBuckets.SelectedNode.Level != 1)
       {
         MessageBox.Show("Please select an object", "Objects required", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -386,56 +387,59 @@ namespace bucket.manager
       }
       string urn = (string)treeBuckets.SelectedNode.Tag;
 
+      // select a folder to download the files
       string folderPath = string.Empty;
       using (var fbd = new FolderBrowserDialog())
       {
         if (fbd.ShowDialog() != DialogResult.OK || string.IsNullOrWhiteSpace(fbd.SelectedPath)) return;
         folderPath = fbd.SelectedPath;
         folderPath = Path.Combine(folderPath, treeBuckets.SelectedNode.Text);
-        Directory.Delete(folderPath, true);
+        if (Directory.Exists(folderPath)) Directory.Delete(folderPath, true);
         Directory.CreateDirectory(folderPath);
       }
 
+      // prepare the UI
       progressBar.Show();
       progressBar.DisplayStyle = ProgressBarDisplayText.CustomText;
       progressBar.Value = 0;
       progressBar.CustomText = "Starting extraction...";
 
-      List<ForgeUtils.Derivatives.ManifestItem> urlsToDownload = await ForgeUtils.Derivatives.ExtractSVFAsync(urn, AccessToken);
+      // get the list of resources to download
+      List<ForgeUtils.Derivatives.Resource> resourcesToDownload = await ForgeUtils.Derivatives.ExtractSVFAsync(urn, AccessToken);
 
-      int count = 0;
-      foreach (ForgeUtils.Derivatives.ManifestItem item in urlsToDownload)
-        count += item.Path.Files.Count;
-
+      // update the UI
       progressBar.Minimum = 0;
-      progressBar.Maximum = count;
+      progressBar.Maximum = resourcesToDownload.Count;
       progressBar.Step = 1;
 
       IRestClient client = new RestClient("https://developer.api.autodesk.com/");
-
-      foreach (ForgeUtils.Derivatives.ManifestItem item in urlsToDownload)
+      foreach(ForgeUtils.Derivatives.Resource resource in resourcesToDownload)
       {
-        foreach (string file in item.Path.Files)
+        progressBar.PerformStep();
+        progressBar.CustomText = "Downloading " + resource.FileName;
+
+        // prepare the GET to download the file
+        RestRequest request = new RestRequest(resource.RemotePath, Method.GET);
+        request.AddHeader("Authorization", "Bearer " + AccessToken);
+        request.AddHeader("Accept-Encoding", "gzip, deflate");
+        IRestResponse response = await client.ExecuteTaskAsync(request);
+
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
-          progressBar.PerformStep();
-          progressBar.CustomText = "Downloading " + file;
+          // something went wrong with this file...
+          MessageBox.Show(string.Format("Error downloading {0}: {1}", 
+            resource.FileName, response.StatusCode.ToString()));
 
-          Uri myUri = new Uri(new Uri(item.Path.BasePath), file);
-          string pathToDownload = Uri.UnescapeDataString(myUri.AbsoluteUri);
-          RestRequest request = new RestRequest("derivativeservice/v2/derivatives/{path}", Method.GET);
-          request.AddParameter("path", pathToDownload, ParameterType.UrlSegment);
-          request.AddHeader("Authorization", "Bearer " + AccessToken);
-          request.AddHeader("Accept-Encoding", "gzip, deflate");
-          IRestResponse response = await client.ExecuteTaskAsync(request);
-
-          if (response.StatusCode != System.Net.HttpStatusCode.OK)
-          {
-
-          }
-
-          string pathToSave = Path.Combine(folderPath, item.Path.LocalPath, file);
+          // any other action?
+        }
+        else
+        {
+          // combine with selected local path
+          string pathToSave = Path.Combine(folderPath, resource.LocalPath);
+          // ensure local dir exists
           Directory.CreateDirectory(Path.GetDirectoryName(pathToSave));
-          File.WriteAllBytes(pathToSave, response.RawBytes);
+          // save file
+          File.WriteAllBytes(pathToSave, response.RawBytes); 
         }
       }
 
