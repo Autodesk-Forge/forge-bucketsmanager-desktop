@@ -21,6 +21,7 @@ using Autodesk.Forge.Model;
 using bucket.manager.Utils;
 using CefSharp;
 using CefSharp.WinForms;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -355,7 +356,6 @@ namespace bucket.manager
 
       // this basic HTML page to show the model passing URN & Access Token
       browser.Load(string.Format("file:///HTML/Viewer.html?URN={0}&Token={1}", treeBuckets.SelectedNode.Tag, AccessToken));
-      // browser.ShowDevTools();
     }
 
     private async void btnCreateBucket_Click(object sender, EventArgs e)
@@ -370,6 +370,76 @@ namespace bucket.manager
 
         btnRefreshToken_Click(null, null);
       }
+    }
+
+    private void btnShowDevTools_Click(object sender, EventArgs e)
+    {
+      browser.ShowDevTools();
+    }
+
+    private async void btnDownloadSVF_Click(object sender, EventArgs e)
+    {
+      if (treeBuckets.SelectedNode == null || treeBuckets.SelectedNode.Level != 1)
+      {
+        MessageBox.Show("Please select an object", "Objects required", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        return;
+      }
+      string urn = (string)treeBuckets.SelectedNode.Tag;
+
+      string folderPath = string.Empty;
+      using (var fbd = new FolderBrowserDialog())
+      {
+        if (fbd.ShowDialog() != DialogResult.OK || string.IsNullOrWhiteSpace(fbd.SelectedPath)) return;
+        folderPath = fbd.SelectedPath;
+        folderPath = Path.Combine(folderPath, treeBuckets.SelectedNode.Text);
+        Directory.Delete(folderPath, true);
+        Directory.CreateDirectory(folderPath);
+      }
+
+      progressBar.Show();
+      progressBar.DisplayStyle = ProgressBarDisplayText.CustomText;
+      progressBar.Value = 0;
+      progressBar.CustomText = "Starting extraction...";
+
+      List<ForgeUtils.Derivatives.ManifestItem> urlsToDownload = await ForgeUtils.Derivatives.ExtractSVFAsync(urn, AccessToken);
+
+      int count = 0;
+      foreach (ForgeUtils.Derivatives.ManifestItem item in urlsToDownload)
+        count += item.Path.Files.Count;
+
+      progressBar.Minimum = 0;
+      progressBar.Maximum = count;
+      progressBar.Step = 1;
+
+      IRestClient client = new RestClient("https://developer.api.autodesk.com/");
+
+      foreach (ForgeUtils.Derivatives.ManifestItem item in urlsToDownload)
+      {
+        foreach (string file in item.Path.Files)
+        {
+          progressBar.PerformStep();
+          progressBar.CustomText = "Downloading " + file;
+
+          Uri myUri = new Uri(new Uri(item.Path.BasePath), file);
+          string pathToDownload = Uri.UnescapeDataString(myUri.AbsoluteUri);
+          RestRequest request = new RestRequest("derivativeservice/v2/derivatives/{path}", Method.GET);
+          request.AddParameter("path", pathToDownload, ParameterType.UrlSegment);
+          request.AddHeader("Authorization", "Bearer " + AccessToken);
+          request.AddHeader("Accept-Encoding", "gzip, deflate");
+          IRestResponse response = await client.ExecuteTaskAsync(request);
+
+          if (response.StatusCode != System.Net.HttpStatusCode.OK)
+          {
+
+          }
+
+          string pathToSave = Path.Combine(folderPath, item.Path.LocalPath, file);
+          Directory.CreateDirectory(Path.GetDirectoryName(pathToSave));
+          File.WriteAllBytes(pathToSave, response.RawBytes);
+        }
+      }
+
+      progressBar.Hide();
     }
   }
 }

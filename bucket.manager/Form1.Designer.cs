@@ -65,6 +65,8 @@ namespace bucket.manager
       this.btnDeleteObject = new System.Windows.Forms.Button();
       this.panel1 = new System.Windows.Forms.Panel();
       this.progressBar = new bucket.manager.Utils.CustomProgressBar();
+      this.btnShowDevTools = new System.Windows.Forms.Button();
+      this.btnDownloadSVF = new System.Windows.Forms.Button();
       this.groupBox1.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -238,7 +240,7 @@ namespace bucket.manager
       this.panel1.Location = new System.Drawing.Point(242, 95);
       this.panel1.Margin = new System.Windows.Forms.Padding(2);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(446, 505);
+      this.panel1.Size = new System.Drawing.Size(446, 477);
       this.panel1.TabIndex = 9;
       // 
       // progressBar
@@ -253,11 +255,35 @@ namespace bucket.manager
       this.progressBar.TabIndex = 7;
       this.progressBar.Visible = false;
       // 
+      // btnShowDevTools
+      // 
+      this.btnShowDevTools.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnShowDevTools.Location = new System.Drawing.Point(613, 578);
+      this.btnShowDevTools.Name = "btnShowDevTools";
+      this.btnShowDevTools.Size = new System.Drawing.Size(75, 23);
+      this.btnShowDevTools.TabIndex = 10;
+      this.btnShowDevTools.Text = "DevTools";
+      this.btnShowDevTools.UseVisualStyleBackColor = true;
+      this.btnShowDevTools.Click += new System.EventHandler(this.btnShowDevTools_Click);
+      // 
+      // btnDownloadSVF
+      // 
+      this.btnDownloadSVF.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnDownloadSVF.Location = new System.Drawing.Point(492, 577);
+      this.btnDownloadSVF.Name = "btnDownloadSVF";
+      this.btnDownloadSVF.Size = new System.Drawing.Size(115, 23);
+      this.btnDownloadSVF.TabIndex = 11;
+      this.btnDownloadSVF.Text = "Download SVF";
+      this.btnDownloadSVF.UseVisualStyleBackColor = true;
+      this.btnDownloadSVF.Click += new System.EventHandler(this.btnDownloadSVF_Click);
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(700, 642);
+      this.Controls.Add(this.btnDownloadSVF);
+      this.Controls.Add(this.btnShowDevTools);
       this.Controls.Add(this.panel1);
       this.Controls.Add(this.btnDeleteObject);
       this.Controls.Add(this.progressBar);
@@ -298,6 +324,8 @@ namespace bucket.manager
     private System.Windows.Forms.ContextMenuStrip menuTranslate;
     private System.Windows.Forms.Button btnDeleteObject;
     private System.Windows.Forms.Panel panel1;
+    private System.Windows.Forms.Button btnShowDevTools;
+    private System.Windows.Forms.Button btnDownloadSVF;
   }
 }
 
