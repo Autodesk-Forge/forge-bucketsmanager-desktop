@@ -140,11 +140,20 @@ namespace bucket.manager.ForgeUtils
       JObject manifestJson = null;
 
       // unzip it
-      ZipArchive zip = new ZipArchive(new MemoryStream(response.RawBytes));
-      ZipArchiveEntry manifestData = zip.GetEntry("manifest.json");
-      using (var stream = manifestData.Open())
-      using (var reader = new StreamReader(stream))
-        manifestJson = JObject.Parse(reader.ReadToEnd());
+      if (manifest.IndexOf(".gz") > -1)
+      {
+        GZipStream gzip = new GZipStream(new MemoryStream(response.RawBytes), CompressionMode.Decompress);
+        using (var fileStream = new StreamReader(gzip))
+          manifestJson = JObject.Parse(fileStream.ReadToEnd());
+      }
+      else
+      {
+        ZipArchive zip = new ZipArchive(new MemoryStream(response.RawBytes));
+        ZipArchiveEntry manifestData = zip.GetEntry("manifest.json");
+        using (var stream = manifestData.Open())
+        using (var reader = new StreamReader(stream))
+          manifestJson = JObject.Parse(reader.ReadToEnd().ToString());
+      }
 
       return manifestJson;
     }
@@ -166,7 +175,7 @@ namespace bucket.manager.ForgeUtils
 
       return files;
     }
-    
+
     /// <summary>
     /// Prepare list of resources for f2d files
     /// </summary>
