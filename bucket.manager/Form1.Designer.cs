@@ -67,6 +67,7 @@ namespace bucket.manager
       this.progressBar = new bucket.manager.Utils.CustomProgressBar();
       this.btnShowDevTools = new System.Windows.Forms.Button();
       this.btnDownloadSVF = new System.Windows.Forms.Button();
+      this.btnJavaScript = new System.Windows.Forms.Button();
       this.groupBox1.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -277,11 +278,22 @@ namespace bucket.manager
       this.btnDownloadSVF.UseVisualStyleBackColor = true;
       this.btnDownloadSVF.Click += new System.EventHandler(this.btnDownloadSVF_Click);
       // 
+      // btnJavaScript
+      // 
+      this.btnJavaScript.Location = new System.Drawing.Point(411, 577);
+      this.btnJavaScript.Name = "btnJavaScript";
+      this.btnJavaScript.Size = new System.Drawing.Size(75, 23);
+      this.btnJavaScript.TabIndex = 12;
+      this.btnJavaScript.Text = "JavaScript";
+      this.btnJavaScript.UseVisualStyleBackColor = true;
+      this.btnJavaScript.Click += new System.EventHandler(this.btnJavaScript_Click);
+      // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(700, 642);
+      this.Controls.Add(this.btnJavaScript);
       this.Controls.Add(this.btnDownloadSVF);
       this.Controls.Add(this.btnShowDevTools);
       this.Controls.Add(this.panel1);
@@ -326,6 +338,7 @@ namespace bucket.manager
     private System.Windows.Forms.Panel panel1;
     private System.Windows.Forms.Button btnShowDevTools;
     private System.Windows.Forms.Button btnDownloadSVF;
+    private System.Windows.Forms.Button btnJavaScript;
   }
 }
 

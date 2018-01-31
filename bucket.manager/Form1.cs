@@ -376,7 +376,7 @@ namespace bucket.manager
     {
       browser.ShowDevTools();
     }
-
+    
     private async void btnDownloadSVF_Click(object sender, EventArgs e)
     {
       // ensure the selected node is an object and get its URN
@@ -413,7 +413,7 @@ namespace bucket.manager
       progressBar.Step = 1;
 
       IRestClient client = new RestClient("https://developer.api.autodesk.com/");
-      foreach(ForgeUtils.Derivatives.Resource resource in resourcesToDownload)
+      foreach (ForgeUtils.Derivatives.Resource resource in resourcesToDownload)
       {
         progressBar.PerformStep();
         progressBar.CustomText = "Downloading " + resource.FileName;
@@ -427,7 +427,7 @@ namespace bucket.manager
         if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
           // something went wrong with this file...
-          MessageBox.Show(string.Format("Error downloading {0}: {1}", 
+          MessageBox.Show(string.Format("Error downloading {0}: {1}",
             resource.FileName, response.StatusCode.ToString()));
 
           // any other action?
@@ -439,11 +439,17 @@ namespace bucket.manager
           // ensure local dir exists
           Directory.CreateDirectory(Path.GetDirectoryName(pathToSave));
           // save file
-          File.WriteAllBytes(pathToSave, response.RawBytes); 
+          File.WriteAllBytes(pathToSave, response.RawBytes);
         }
       }
 
       progressBar.Hide();
+    }
+
+    private void btnJavaScript_Click(object sender, EventArgs e)
+    {
+      JSEditor editor = new JSEditor(this.browser);
+      editor.Show();
     }
   }
 }
