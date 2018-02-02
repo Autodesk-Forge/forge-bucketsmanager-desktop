@@ -448,7 +448,7 @@ namespace bucket.manager
 
     private void btnJavaScript_Click(object sender, EventArgs e)
     {
-      JSEditor editor = new JSEditor(this.browser);
+      Tools.JSEditor editor = new Tools.JSEditor(this.browser);
       editor.Show();
     }
   }

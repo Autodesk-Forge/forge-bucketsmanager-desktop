@@ -1,4 +1,4 @@
-﻿namespace bucket.manager
+﻿namespace bucket.manager.Tools
 {
   partial class JSEditor
   {
@@ -466,6 +466,7 @@
       // 
       // brnRun
       // 
+      this.brnRun.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
       this.brnRun.Location = new System.Drawing.Point(8, 581);
       this.brnRun.Name = "brnRun";
       this.brnRun.Size = new System.Drawing.Size(56, 35);

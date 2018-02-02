@@ -64,10 +64,10 @@ namespace bucket.manager
       this.menuTranslate = new System.Windows.Forms.ContextMenuStrip(this.components);
       this.btnDeleteObject = new System.Windows.Forms.Button();
       this.panel1 = new System.Windows.Forms.Panel();
-      this.progressBar = new bucket.manager.Utils.CustomProgressBar();
       this.btnShowDevTools = new System.Windows.Forms.Button();
       this.btnDownloadSVF = new System.Windows.Forms.Button();
       this.btnJavaScript = new System.Windows.Forms.Button();
+      this.progressBar = new bucket.manager.Utils.CustomProgressBar();
       this.groupBox1.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -244,22 +244,10 @@ namespace bucket.manager
       this.panel1.Size = new System.Drawing.Size(446, 477);
       this.panel1.TabIndex = 9;
       // 
-      // progressBar
-      // 
-      this.progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.progressBar.CustomText = null;
-      this.progressBar.DisplayStyle = bucket.manager.Utils.ProgressBarDisplayText.Percentage;
-      this.progressBar.Location = new System.Drawing.Point(12, 607);
-      this.progressBar.Name = "progressBar";
-      this.progressBar.Size = new System.Drawing.Size(676, 23);
-      this.progressBar.TabIndex = 7;
-      this.progressBar.Visible = false;
-      // 
       // btnShowDevTools
       // 
       this.btnShowDevTools.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnShowDevTools.Location = new System.Drawing.Point(613, 578);
+      this.btnShowDevTools.Location = new System.Drawing.Point(613, 577);
       this.btnShowDevTools.Name = "btnShowDevTools";
       this.btnShowDevTools.Size = new System.Drawing.Size(75, 23);
       this.btnShowDevTools.TabIndex = 10;
@@ -280,6 +268,7 @@ namespace bucket.manager
       // 
       // btnJavaScript
       // 
+      this.btnJavaScript.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.btnJavaScript.Location = new System.Drawing.Point(411, 577);
       this.btnJavaScript.Name = "btnJavaScript";
       this.btnJavaScript.Size = new System.Drawing.Size(75, 23);
@@ -287,6 +276,18 @@ namespace bucket.manager
       this.btnJavaScript.Text = "JavaScript";
       this.btnJavaScript.UseVisualStyleBackColor = true;
       this.btnJavaScript.Click += new System.EventHandler(this.btnJavaScript_Click);
+      // 
+      // progressBar
+      // 
+      this.progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.progressBar.CustomText = null;
+      this.progressBar.DisplayStyle = bucket.manager.Utils.ProgressBarDisplayText.Percentage;
+      this.progressBar.Location = new System.Drawing.Point(12, 607);
+      this.progressBar.Name = "progressBar";
+      this.progressBar.Size = new System.Drawing.Size(676, 23);
+      this.progressBar.TabIndex = 7;
+      this.progressBar.Visible = false;
       // 
       // Form1
       // 
