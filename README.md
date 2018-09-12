@@ -13,7 +13,7 @@ This sample is a Windows desktop application that lists all buckets for a given 
 
 ## Demonstration
 
-![thumbnail](main_screen.png)
+![thumbnail](/thumbnail.png)
 
 ## Setup
 
