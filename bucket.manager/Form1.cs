@@ -293,7 +293,7 @@ namespace bucket.manager
       // start translation job
       DerivativesApi derivative = new DerivativesApi();
       derivative.Configuration.AccessToken = AccessToken;
-      dynamic jobPosted = await derivative.TranslateAsync(job);
+      dynamic jobPosted = await derivative.TranslateAsync(job, true);
 
       // start a monitor job to follow the translation
       _translationTimer.Tick += new EventHandler(isTranslationReady);
