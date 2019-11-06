@@ -1,4 +1,4 @@
-# bucket.manager-csharp-sample.tool
+# Desktop tool to manage buckets and objects
 
 ![Platforms](https://img.shields.io/badge/platform-Windows-lightgray.svg)
 ![.NET](https://img.shields.io/badge/.NET-4.6-blue.svg)
