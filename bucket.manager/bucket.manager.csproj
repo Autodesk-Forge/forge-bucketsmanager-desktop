@@ -104,12 +104,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DisplayText.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="DisplayText.Designer.cs">
-      <DependentUpon>DisplayText.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forge\Derivatives.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -130,9 +124,6 @@
     <Compile Include="Utils\CustomProgress.cs">
       <SubType>Component</SubType>
     </Compile>
-    <EmbeddedResource Include="DisplayText.resx">
-      <DependentUpon>DisplayText.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
