@@ -67,7 +67,10 @@ namespace bucket.manager
       this.btnShowDevTools = new System.Windows.Forms.Button();
       this.btnDownloadSVF = new System.Windows.Forms.Button();
       this.btnJavaScript = new System.Windows.Forms.Button();
+      this.tbFilter = new System.Windows.Forms.TextBox();
+      this.label3 = new System.Windows.Forms.Label();
       this.progressBar = new bucket.manager.Utils.CustomProgressBar();
+      this.btnManifest = new System.Windows.Forms.Button();
       this.groupBox1.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -75,9 +78,9 @@ namespace bucket.manager
       // 
       this.treeBuckets.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
-      this.treeBuckets.Location = new System.Drawing.Point(12, 182);
+      this.treeBuckets.Location = new System.Drawing.Point(12, 208);
       this.treeBuckets.Name = "treeBuckets";
-      this.treeBuckets.Size = new System.Drawing.Size(225, 419);
+      this.treeBuckets.Size = new System.Drawing.Size(225, 393);
       this.treeBuckets.TabIndex = 0;
       this.treeBuckets.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeBuckets_AfterSelect);
       // 
@@ -104,7 +107,7 @@ namespace bucket.manager
       this.groupBox1.Controls.Add(this.label1);
       this.groupBox1.Location = new System.Drawing.Point(13, 13);
       this.groupBox1.Name = "groupBox1";
-      this.groupBox1.Size = new System.Drawing.Size(675, 76);
+      this.groupBox1.Size = new System.Drawing.Size(1092, 76);
       this.groupBox1.TabIndex = 2;
       this.groupBox1.TabStop = false;
       this.groupBox1.Text = "Forge Credentials";
@@ -112,7 +115,7 @@ namespace bucket.manager
       // txtTimeout
       // 
       this.txtTimeout.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.txtTimeout.Location = new System.Drawing.Point(583, 46);
+      this.txtTimeout.Location = new System.Drawing.Point(1000, 46);
       this.txtTimeout.Name = "txtTimeout";
       this.txtTimeout.ReadOnly = true;
       this.txtTimeout.Size = new System.Drawing.Size(86, 20);
@@ -126,7 +129,7 @@ namespace bucket.manager
       this.txtAccessToken.Location = new System.Drawing.Point(100, 46);
       this.txtAccessToken.Name = "txtAccessToken";
       this.txtAccessToken.ReadOnly = true;
-      this.txtAccessToken.Size = new System.Drawing.Size(477, 20);
+      this.txtAccessToken.Size = new System.Drawing.Size(894, 20);
       this.txtAccessToken.TabIndex = 9;
       // 
       // label4
@@ -141,7 +144,7 @@ namespace bucket.manager
       // btnAuthenticate
       // 
       this.btnAuthenticate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnAuthenticate.Location = new System.Drawing.Point(583, 18);
+      this.btnAuthenticate.Location = new System.Drawing.Point(1000, 18);
       this.btnAuthenticate.Name = "btnAuthenticate";
       this.btnAuthenticate.Size = new System.Drawing.Size(86, 23);
       this.btnAuthenticate.TabIndex = 5;
@@ -152,7 +155,7 @@ namespace bucket.manager
       // txtClientSecret
       // 
       this.txtClientSecret.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.txtClientSecret.Location = new System.Drawing.Point(384, 20);
+      this.txtClientSecret.Location = new System.Drawing.Point(801, 20);
       this.txtClientSecret.Name = "txtClientSecret";
       this.txtClientSecret.PasswordChar = '*';
       this.txtClientSecret.Size = new System.Drawing.Size(193, 20);
@@ -162,7 +165,7 @@ namespace bucket.manager
       // 
       this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
       this.label2.AutoSize = true;
-      this.label2.Location = new System.Drawing.Point(337, 24);
+      this.label2.Location = new System.Drawing.Point(754, 24);
       this.label2.Name = "label2";
       this.label2.Size = new System.Drawing.Size(41, 13);
       this.label2.TabIndex = 3;
@@ -174,14 +177,14 @@ namespace bucket.manager
             | System.Windows.Forms.AnchorStyles.Right)));
       this.txtClientId.Location = new System.Drawing.Point(35, 20);
       this.txtClientId.Name = "txtClientId";
-      this.txtClientId.Size = new System.Drawing.Size(296, 20);
+      this.txtClientId.Size = new System.Drawing.Size(713, 20);
       this.txtClientId.TabIndex = 2;
       // 
       // btnRefreshToken
       // 
-      this.btnRefreshToken.Location = new System.Drawing.Point(13, 95);
+      this.btnRefreshToken.Location = new System.Drawing.Point(12, 95);
       this.btnRefreshToken.Name = "btnRefreshToken";
-      this.btnRefreshToken.Size = new System.Drawing.Size(121, 23);
+      this.btnRefreshToken.Size = new System.Drawing.Size(108, 23);
       this.btnRefreshToken.TabIndex = 3;
       this.btnRefreshToken.Text = "Refresh buckets";
       this.btnRefreshToken.UseVisualStyleBackColor = true;
@@ -189,9 +192,9 @@ namespace bucket.manager
       // 
       // btnCreateBucket
       // 
-      this.btnCreateBucket.Location = new System.Drawing.Point(140, 95);
+      this.btnCreateBucket.Location = new System.Drawing.Point(129, 95);
       this.btnCreateBucket.Name = "btnCreateBucket";
-      this.btnCreateBucket.Size = new System.Drawing.Size(97, 23);
+      this.btnCreateBucket.Size = new System.Drawing.Size(108, 23);
       this.btnCreateBucket.TabIndex = 4;
       this.btnCreateBucket.Text = "Create Bucket";
       this.btnCreateBucket.UseVisualStyleBackColor = true;
@@ -199,9 +202,9 @@ namespace bucket.manager
       // 
       // btnUpload
       // 
-      this.btnUpload.Location = new System.Drawing.Point(13, 153);
+      this.btnUpload.Location = new System.Drawing.Point(12, 150);
       this.btnUpload.Name = "btnUpload";
-      this.btnUpload.Size = new System.Drawing.Size(93, 23);
+      this.btnUpload.Size = new System.Drawing.Size(108, 23);
       this.btnUpload.TabIndex = 5;
       this.btnUpload.Text = "Upload File";
       this.btnUpload.UseVisualStyleBackColor = true;
@@ -209,11 +212,11 @@ namespace bucket.manager
       // 
       // btnTranslate
       // 
-      this.btnTranslate.Location = new System.Drawing.Point(113, 153);
+      this.btnTranslate.Location = new System.Drawing.Point(12, 179);
       this.btnTranslate.Name = "btnTranslate";
-      this.btnTranslate.Size = new System.Drawing.Size(124, 23);
+      this.btnTranslate.Size = new System.Drawing.Size(108, 23);
       this.btnTranslate.TabIndex = 6;
-      this.btnTranslate.Text = "Translate file";
+      this.btnTranslate.Text = "Translate File";
       this.btnTranslate.UseVisualStyleBackColor = true;
       this.btnTranslate.Click += new System.EventHandler(this.btnTranslate_Click);
       // 
@@ -225,9 +228,9 @@ namespace bucket.manager
       // 
       // btnDeleteObject
       // 
-      this.btnDeleteObject.Location = new System.Drawing.Point(13, 124);
+      this.btnDeleteObject.Location = new System.Drawing.Point(129, 150);
       this.btnDeleteObject.Name = "btnDeleteObject";
-      this.btnDeleteObject.Size = new System.Drawing.Size(103, 23);
+      this.btnDeleteObject.Size = new System.Drawing.Size(108, 23);
       this.btnDeleteObject.TabIndex = 8;
       this.btnDeleteObject.Text = "Delete Object";
       this.btnDeleteObject.UseVisualStyleBackColor = true;
@@ -241,13 +244,13 @@ namespace bucket.manager
       this.panel1.Location = new System.Drawing.Point(242, 95);
       this.panel1.Margin = new System.Windows.Forms.Padding(2);
       this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(446, 477);
+      this.panel1.Size = new System.Drawing.Size(863, 477);
       this.panel1.TabIndex = 9;
       // 
       // btnShowDevTools
       // 
       this.btnShowDevTools.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnShowDevTools.Location = new System.Drawing.Point(613, 577);
+      this.btnShowDevTools.Location = new System.Drawing.Point(1030, 577);
       this.btnShowDevTools.Name = "btnShowDevTools";
       this.btnShowDevTools.Size = new System.Drawing.Size(75, 23);
       this.btnShowDevTools.TabIndex = 10;
@@ -258,7 +261,7 @@ namespace bucket.manager
       // btnDownloadSVF
       // 
       this.btnDownloadSVF.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnDownloadSVF.Location = new System.Drawing.Point(492, 577);
+      this.btnDownloadSVF.Location = new System.Drawing.Point(909, 577);
       this.btnDownloadSVF.Name = "btnDownloadSVF";
       this.btnDownloadSVF.Size = new System.Drawing.Size(115, 23);
       this.btnDownloadSVF.TabIndex = 11;
@@ -269,13 +272,29 @@ namespace bucket.manager
       // btnJavaScript
       // 
       this.btnJavaScript.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnJavaScript.Location = new System.Drawing.Point(411, 577);
+      this.btnJavaScript.Location = new System.Drawing.Point(828, 577);
       this.btnJavaScript.Name = "btnJavaScript";
       this.btnJavaScript.Size = new System.Drawing.Size(75, 23);
       this.btnJavaScript.TabIndex = 12;
       this.btnJavaScript.Text = "JavaScript";
       this.btnJavaScript.UseVisualStyleBackColor = true;
       this.btnJavaScript.Click += new System.EventHandler(this.btnJavaScript_Click);
+      // 
+      // tbFilter
+      // 
+      this.tbFilter.Location = new System.Drawing.Point(48, 124);
+      this.tbFilter.Name = "tbFilter";
+      this.tbFilter.Size = new System.Drawing.Size(189, 20);
+      this.tbFilter.TabIndex = 13;
+      // 
+      // label3
+      // 
+      this.label3.AutoSize = true;
+      this.label3.Location = new System.Drawing.Point(13, 128);
+      this.label3.Name = "label3";
+      this.label3.Size = new System.Drawing.Size(29, 13);
+      this.label3.TabIndex = 14;
+      this.label3.Text = "Filter";
       // 
       // progressBar
       // 
@@ -285,15 +304,28 @@ namespace bucket.manager
       this.progressBar.DisplayStyle = bucket.manager.Utils.ProgressBarDisplayText.Percentage;
       this.progressBar.Location = new System.Drawing.Point(12, 607);
       this.progressBar.Name = "progressBar";
-      this.progressBar.Size = new System.Drawing.Size(676, 23);
+      this.progressBar.Size = new System.Drawing.Size(1093, 23);
       this.progressBar.TabIndex = 7;
       this.progressBar.Visible = false;
+      // 
+      // btnManifest
+      // 
+      this.btnManifest.Location = new System.Drawing.Point(129, 179);
+      this.btnManifest.Name = "btnManifest";
+      this.btnManifest.Size = new System.Drawing.Size(108, 23);
+      this.btnManifest.TabIndex = 15;
+      this.btnManifest.Text = "Show Manifest";
+      this.btnManifest.UseVisualStyleBackColor = true;
+      this.btnManifest.Click += new System.EventHandler(this.btnManifest_Click);
       // 
       // Form1
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(700, 642);
+      this.ClientSize = new System.Drawing.Size(1117, 642);
+      this.Controls.Add(this.btnManifest);
+      this.Controls.Add(this.label3);
+      this.Controls.Add(this.tbFilter);
       this.Controls.Add(this.btnJavaScript);
       this.Controls.Add(this.btnDownloadSVF);
       this.Controls.Add(this.btnShowDevTools);
@@ -314,6 +346,7 @@ namespace bucket.manager
       this.groupBox1.ResumeLayout(false);
       this.groupBox1.PerformLayout();
       this.ResumeLayout(false);
+      this.PerformLayout();
 
     }
 
@@ -340,6 +373,9 @@ namespace bucket.manager
     private System.Windows.Forms.Button btnShowDevTools;
     private System.Windows.Forms.Button btnDownloadSVF;
     private System.Windows.Forms.Button btnJavaScript;
+    private System.Windows.Forms.TextBox tbFilter;
+    private System.Windows.Forms.Label label3;
+    private System.Windows.Forms.Button btnManifest;
   }
 }
 
