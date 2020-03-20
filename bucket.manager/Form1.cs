@@ -131,23 +131,51 @@ namespace bucket.manager
       foreach (TreeNode n in treeBuckets.Nodes)
         if (n != null) // async?
           await ShowBucketObjects(n);
+
+      treeBuckets.Sort();
     }
 
     private async Task ShowBucketObjects(TreeNode nodeBucket)
     {
+      string filter = tbFilter.Text;
+      if (filter == "") filter = null;
+
       nodeBucket.Nodes.Clear();
+
+      // control GetBucket pagination
+      string lastNode = null;
+      int itemCount = 0;
 
       ObjectsApi objects = new ObjectsApi();
       objects.Configuration.AccessToken = AccessToken;
 
       // show objects on the given TreeNode
-      var objectsList = await objects.GetObjectsAsync((string)nodeBucket.Tag);
-      foreach (KeyValuePair<string, dynamic> objInfo in new DynamicDictionaryItems(objectsList.items))
+      do
       {
-        TreeNode nodeObject = new TreeNode(objInfo.Value.objectKey);
-        nodeObject.Tag = ((string)objInfo.Value.objectId).Base64Encode();
-        nodeBucket.Nodes.Add(nodeObject);
-      }
+        var objectsList = await objects.GetObjectsAsync((string)nodeBucket.Tag, 100, filter, lastNode); //"24288A-1000"
+        itemCount += objectsList.items.Count;
+        if (itemCount == 0) break;
+        if (((DynamicJsonResponse)objectsList).Dictionary.ContainsKey("next") && objectsList.next != null)
+        {
+          lastNode = ((string)objectsList.next);
+          int start = lastNode.IndexOf("startAt=") + 8;
+          int end = lastNode.IndexOf("&limit=");
+          lastNode = Uri.UnescapeDataString(lastNode.Substring(start, end - start));
+        }
+        else
+        {
+          lastNode = null;
+        }
+
+        foreach (KeyValuePair<string, dynamic> objInfo in new DynamicDictionaryItems(objectsList.items))
+        {
+          TreeNode nodeObject = new TreeNode(objInfo.Value.objectKey);
+          nodeObject.Tag = ((string)objInfo.Value.objectId).Base64Encode();
+          nodeBucket.Nodes.Add(nodeObject);
+          
+        }
+        if (lastNode == null) break;
+      } while ((itemCount % 100) == 0);
     }
 
     private const int UPLOAD_CHUNK_SIZE = 2; // Mb
@@ -177,8 +205,8 @@ namespace bucket.manager
       // show progress bar for upload
       progressBar.DisplayStyle = ProgressBarDisplayText.CustomText;
       progressBar.Show();
-      progressBar.Value = 0;
       progressBar.Minimum = 0;
+      progressBar.Value = 0;
       progressBar.CustomText = "Preparing to upload file...";
 
       // decide if upload direct or resumable (by chunks)
@@ -224,8 +252,8 @@ namespace bucket.manager
       {
         using (StreamReader streamReader = new StreamReader(filePath))
         {
-          progressBar.Value = 50; // random...
           progressBar.Maximum = 100;
+          progressBar.Value = 50; // random...
           dynamic uploadedObj = await objects.UploadObjectAsync(bucketKey,
                  objectKey, (int)streamReader.BaseStream.Length, streamReader.BaseStream,
                  "application/octet-stream");
@@ -251,6 +279,32 @@ namespace bucket.manager
       menuTranslate.Items.Clear();
       menuTranslate.Items.Add("Viewer (SVF)", null, onClickTranslate);
       menuTranslate.Show(btnTranslate, new Point(0, btnTranslate.Height));
+    }
+
+    private void btnManifest_Click(object sender, EventArgs e)
+    {
+      // check level 1 of objects
+      if (treeBuckets.SelectedNode == null || treeBuckets.SelectedNode.Level != 1)
+      {
+        MessageBox.Show("Please select an object", "Objects required", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        return;
+      }
+      string urn = (string)treeBuckets.SelectedNode.Tag;
+
+      DerivativesApi derivative = new DerivativesApi();
+      derivative.Configuration.AccessToken = AccessToken;
+      try
+      {
+        string aManifest = derivative.GetManifest(urn).ToString();
+
+        using (var displayText = new DisplayText(aManifest))
+        {
+          displayText.ShowDialog();
+        }
+      } catch (Exception ex)
+      {
+        MessageBox.Show(ex.Message, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
     }
 
     private async void onClickTranslate(object sender, EventArgs e)
@@ -285,9 +339,9 @@ namespace bucket.manager
 
       // start progress bar for translation
       progressBar.Show();
-      progressBar.Value = 0;
       progressBar.Minimum = 0;
       progressBar.Maximum = 100;
+      progressBar.Value = 0;
       progressBar.CustomText = "Starting translation job...";
 
       // start translation job

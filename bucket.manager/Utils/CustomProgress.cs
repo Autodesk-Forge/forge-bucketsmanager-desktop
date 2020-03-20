@@ -12,7 +12,7 @@ namespace bucket.manager.Utils
     CustomText
   }
 
-  class CustomProgressBar : ProgressBar
+  public class CustomProgressBar : ProgressBar
   {
     //Property to set to decide whether to print a % or Text
     public ProgressBarDisplayText DisplayStyle { get; set; }
