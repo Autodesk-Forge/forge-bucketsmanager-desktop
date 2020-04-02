@@ -68,13 +68,13 @@ namespace bucket.manager
 
       // get the access token
       TwoLeggedApi oAuth = new TwoLeggedApi();
-      dynamic token = await oAuth.AuthenticateAsync(
+      Bearer token = (await oAuth.AuthenticateAsync(
         txtClientId.Text,
         txtClientSecret.Text,
         oAuthConstants.CLIENT_CREDENTIALS,
-        new Scope[] { Scope.BucketRead, Scope.BucketCreate, Scope.DataRead, Scope.DataWrite });
-      txtAccessToken.Text = token.access_token;
-      _expiresAt = DateTime.Now.AddSeconds(token.expires_in);
+        new Scope[] { Scope.BucketRead, Scope.BucketCreate, Scope.DataRead, Scope.DataWrite })).ToObject<Bearer>();
+      txtAccessToken.Text = token.AccessToken;
+      _expiresAt = DateTime.Now.AddSeconds(token.ExpiresIn.Value);
 
       // keep track on time
       _tokenTimer.Tick += new EventHandler(tickTokenTimer);
@@ -114,16 +114,16 @@ namespace bucket.manager
       // get buckets until returned list length < 100
       do
       {
-        dynamic buckets = await bucketApi.GetBucketsAsync(null, 100, lastBucket);
-        itemCount += buckets.items.Count;
+        Buckets buckets = (await bucketApi.GetBucketsAsync(null, 100, lastBucket)).ToObject<Buckets>();
+        itemCount += buckets.Items.Count;
 
-        foreach (KeyValuePair<string, dynamic> bucket in new DynamicDictionaryItems(buckets.items))
+        foreach (var bucket in buckets.Items)
         {
-          TreeNode nodeBucket = new TreeNode(bucket.Value.bucketKey);
-          nodeBucket.Tag = bucket.Value.bucketKey;
+          TreeNode nodeBucket = new TreeNode(bucket.BucketKey);
+          nodeBucket.Tag = bucket.BucketKey;
           treeBuckets.Nodes.Add(nodeBucket);
 
-          lastBucket = bucket.Value.bucketKey; // after the loop, this will contain the last bucketKey
+          lastBucket = bucket.BucketKey; // after the loop, this will contain the last bucketKey
         }
       } while ((itemCount % 100) == 0); // while GetBuckets returns 100, we need to get next page
 
@@ -141,11 +141,11 @@ namespace bucket.manager
       objects.Configuration.AccessToken = AccessToken;
 
       // show objects on the given TreeNode
-      var objectsList = await objects.GetObjectsAsync((string)nodeBucket.Tag);
-      foreach (KeyValuePair<string, dynamic> objInfo in new DynamicDictionaryItems(objectsList.items))
+      BucketObjects objectsList = (await objects.GetObjectsAsync((string)nodeBucket.Tag)).ToObject<BucketObjects>();
+      foreach (var objInfo in objectsList.Items)
       {
-        TreeNode nodeObject = new TreeNode(objInfo.Value.objectKey);
-        nodeObject.Tag = ((string)objInfo.Value.objectId).Base64Encode();
+        TreeNode nodeObject = new TreeNode(objInfo.ObjectKey);
+        nodeObject.Tag = ((string)objInfo.ObjectId).Base64Encode();
         nodeBucket.Nodes.Add(nodeObject);
       }
     }
