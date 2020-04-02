@@ -1,99 +1,77 @@
 ﻿<head>
-  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
-  <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+    <meta charset="utf-8">
 
-  <!-- The Viewer CSS -->
-  <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v6.0" type="text/css">
+    <!-- The Viewer CSS -->
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.css" type="text/css">
 
-  <!-- Developer CSS -->
-  <style>
-    body {
-      margin: 0;
-    }
+    <!-- Developer CSS -->
+    <style>
+        body {
+            margin: 0;
+        }
 
-    #MyViewerDiv {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-    }
-  </style>
+        #MyViewerDiv {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- The Viewer will be instantiated here -->
-  <div id="MyViewerDiv"></div>
+    <!-- The Viewer will be instantiated here -->
+    <div id="MyViewerDiv"></div>
 
-  <!-- The Viewer JS -->
-  <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v6.0"></script>
+    <!-- The Viewer JS -->
+    <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.js"></script>
 
-  <!-- Developer JS -->
-  <script>
-    // getParameterByName from https://stackoverflow.com/a/901144
-    function getParameterByName(name, url) {
-      if (!url) url = window.location.href;
-      name = name.replace(/[\[\]]/g, "\\$&");
-      var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-        results = regex.exec(url);
-      if (!results) return null;
-      if (!results[2]) return '';
-      return decodeURIComponent(results[2].replace(/\+/g, " "));
-    }
+    <!-- Developer JS -->
+    <script>
+        // getParameterByName from https://stackoverflow.com/a/901144
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
 
-    var urn = getParameterByName('URN');
-    var token = getParameterByName('Token');
+        var urn = getParameterByName('URN');
+        var token = getParameterByName('Token');
 
-    if (urn != null && token != null) {
-      showModel(urn, token);
-    }
+        if (urn != null && token != null) {
+            showModel(urn, token);
+        }
 
-    // Viewer Application tutorial 
-    var viewerApp;
-    function showModel(urn, token) {
-      var options = {
-        env: 'AutodeskProduction',
-        accessToken: token
+        // Viewer tutorial
+        var viewer;
 
-      };
-      var documentId = 'urn:' + urn;
-      Autodesk.Viewing.Initializer(options, function onInitialized() {
-        viewerApp = new Autodesk.Viewing.ViewingApplication('MyViewerDiv');
-        viewerApp.registerViewer(viewerApp.k3D, Autodesk.Viewing.Private.GuiViewer3D);
-        viewerApp.loadDocument(documentId, onDocumentLoadSuccess, onDocumentLoadFailure);
-      });
-    }
+        function showModel(urn, token) {
+            debugger;
+            var options = {
+                env: 'AutodeskProduction',
+                accessToken: token
+            };
+            var documentId = 'urn:' + urn;
+            Autodesk.Viewing.Initializer(options, function onInitialized() {
+                viewer = new Autodesk.Viewing.GuiViewer3D(document.getElementById('MyViewerDiv'));
+                viewer.start();
+                Autodesk.Viewing.Document.load(documentId, onDocumentLoadSuccess, onDocumentLoadFailure);
+            });
+        }
 
-    function onDocumentLoadSuccess(doc) {
+        function onDocumentLoadSuccess(doc) {
+            const geom = doc.getRoot().getDefaultGeometry();
+            viewer.loadDocumentNode(doc, geom);
+        }
 
-      // We could still make use of Document.getSubItemsWithProperties()
-      // However, when using a ViewingApplication, we have access to the **bubble** attribute,
-      // which references the root node of a graph that wraps each object from the Manifest JSON.
-      var viewables = viewerApp.bubble.search({ 'type': 'geometry' });
-      if (viewables.length === 0) {
-        alert('File not translated or not viewable');
-        return;
-      }
+        function onDocumentLoadFailure(viewerErrorCode) {
+            alert('File not translated or not viewable');
+            console.error('onDocumentLoadFailure() - errorCode:' + viewerErrorCode);
+        }
 
-      // Choose any of the avialble viewables
-      viewerApp.selectItem(viewables[0].data, onItemLoadSuccess, onItemLoadFail);
-    }
-
-    function onDocumentLoadFailure(viewerErrorCode) {
-      alert('File not translated or not viewable');
-      console.error('onDocumentLoadFailure() - errorCode:' + viewerErrorCode);
-    }
-
-    function onItemLoadSuccess(viewer, item) {
-      console.log('onItemLoadSuccess()!');
-      console.log(viewer);
-      console.log(item);
-
-      // Congratulations! The viewer is now ready to be used.
-      console.log('Viewers are equal: ' + (viewer === viewerApp.getCurrentViewer()));
-    }
-
-    function onItemLoadFail(errorCode) {
-      console.error('onItemLoadFail() - errorCode:' + errorCode);
-    }
-
-  </script>
+    </script>
 </body>
