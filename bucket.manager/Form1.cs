@@ -114,7 +114,7 @@ namespace bucket.manager
       // get buckets until returned list length < 100
       do
       {
-        Buckets buckets = (await bucketApi.GetBucketsAsync(null, 100, lastBucket)).ToObject<Buckets>();
+        Buckets buckets = (await bucketApi.GetBucketsAsync(cmbRegion.Text, 100, lastBucket)).ToObject<Buckets>();
         itemCount += buckets.Items.Count;
 
         foreach (var bucket in buckets.Items)
@@ -366,7 +366,7 @@ namespace bucket.manager
         BucketsApi buckets = new BucketsApi();
         buckets.Configuration.AccessToken = AccessToken;
         PostBucketsPayload bucketPayload = new PostBucketsPayload(bucketKey.ToLower(), null, PostBucketsPayload.PolicyKeyEnum.Transient);
-        await buckets.CreateBucketAsync(bucketPayload);
+        await buckets.CreateBucketAsync(bucketPayload, cmbRegion.Text);
 
         btnRefreshToken_Click(null, null);
       }

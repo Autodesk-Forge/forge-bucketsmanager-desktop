@@ -57,6 +57,8 @@ namespace bucket.manager
       this.txtClientSecret = new System.Windows.Forms.TextBox();
       this.label2 = new System.Windows.Forms.Label();
       this.txtClientId = new System.Windows.Forms.TextBox();
+      this.cmbRegion = new System.Windows.Forms.ComboBox();
+      this.label3 = new System.Windows.Forms.Label();
       this.btnRefreshToken = new System.Windows.Forms.Button();
       this.btnCreateBucket = new System.Windows.Forms.Button();
       this.btnUpload = new System.Windows.Forms.Button();
@@ -75,9 +77,9 @@ namespace bucket.manager
       // 
       this.treeBuckets.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
-      this.treeBuckets.Location = new System.Drawing.Point(12, 182);
+      this.treeBuckets.Location = new System.Drawing.Point(12, 209);
       this.treeBuckets.Name = "treeBuckets";
-      this.treeBuckets.Size = new System.Drawing.Size(225, 419);
+      this.treeBuckets.Size = new System.Drawing.Size(225, 392);
       this.treeBuckets.TabIndex = 0;
       this.treeBuckets.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeBuckets_AfterSelect);
       // 
@@ -177,42 +179,65 @@ namespace bucket.manager
       this.txtClientId.Size = new System.Drawing.Size(296, 20);
       this.txtClientId.TabIndex = 2;
       // 
+      // cmbRegion
+      // 
+      this.cmbRegion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+      this.cmbRegion.FormattingEnabled = true;
+      this.cmbRegion.Items.AddRange(new object[] {
+      "US",
+      "EMEA"});
+      this.cmbRegion.Location = new System.Drawing.Point(62, 95);
+      this.cmbRegion.Name = "cmbRegion";
+      this.cmbRegion.SelectedIndex = 0;
+      this.cmbRegion.Size = new System.Drawing.Size(174, 21);
+      this.cmbRegion.TabIndex = 3;
+      this.cmbRegion.SelectedIndexChanged += new System.EventHandler(this.btnRefreshToken_Click);
+      // 
+      // label3
+      // 
+      this.label3.AutoSize = true;
+      this.label3.Location = new System.Drawing.Point(12, 98);
+      this.label3.Name = "label3";
+      this.label3.Size = new System.Drawing.Size(44, 13);
+      this.label3.TabIndex = 14;
+      this.label3.Text = "Region:";
+      // 
       // btnRefreshToken
       // 
-      this.btnRefreshToken.Location = new System.Drawing.Point(13, 95);
+      this.btnRefreshToken.Location = new System.Drawing.Point(13, 122);
       this.btnRefreshToken.Name = "btnRefreshToken";
       this.btnRefreshToken.Size = new System.Drawing.Size(121, 23);
-      this.btnRefreshToken.TabIndex = 3;
+      this.btnRefreshToken.TabIndex = 4;
       this.btnRefreshToken.Text = "Refresh buckets";
       this.btnRefreshToken.UseVisualStyleBackColor = true;
       this.btnRefreshToken.Click += new System.EventHandler(this.btnRefreshToken_Click);
       // 
       // btnCreateBucket
       // 
-      this.btnCreateBucket.Location = new System.Drawing.Point(140, 95);
+      this.btnCreateBucket.Location = new System.Drawing.Point(140, 122);
       this.btnCreateBucket.Name = "btnCreateBucket";
       this.btnCreateBucket.Size = new System.Drawing.Size(97, 23);
-      this.btnCreateBucket.TabIndex = 4;
+      this.btnCreateBucket.TabIndex = 5;
       this.btnCreateBucket.Text = "Create Bucket";
       this.btnCreateBucket.UseVisualStyleBackColor = true;
       this.btnCreateBucket.Click += new System.EventHandler(this.btnCreateBucket_Click);
       // 
       // btnUpload
       // 
-      this.btnUpload.Location = new System.Drawing.Point(13, 153);
+      this.btnUpload.Location = new System.Drawing.Point(13, 180);
       this.btnUpload.Name = "btnUpload";
       this.btnUpload.Size = new System.Drawing.Size(93, 23);
-      this.btnUpload.TabIndex = 5;
+      this.btnUpload.TabIndex = 6;
       this.btnUpload.Text = "Upload File";
       this.btnUpload.UseVisualStyleBackColor = true;
       this.btnUpload.Click += new System.EventHandler(this.btnUpload_Click);
       // 
       // btnTranslate
       // 
-      this.btnTranslate.Location = new System.Drawing.Point(113, 153);
+      this.btnTranslate.Location = new System.Drawing.Point(113, 180);
       this.btnTranslate.Name = "btnTranslate";
       this.btnTranslate.Size = new System.Drawing.Size(124, 23);
-      this.btnTranslate.TabIndex = 6;
+      this.btnTranslate.TabIndex = 7;
       this.btnTranslate.Text = "Translate file";
       this.btnTranslate.UseVisualStyleBackColor = true;
       this.btnTranslate.Click += new System.EventHandler(this.btnTranslate_Click);
@@ -225,7 +250,7 @@ namespace bucket.manager
       // 
       // btnDeleteObject
       // 
-      this.btnDeleteObject.Location = new System.Drawing.Point(13, 124);
+      this.btnDeleteObject.Location = new System.Drawing.Point(13, 151);
       this.btnDeleteObject.Name = "btnDeleteObject";
       this.btnDeleteObject.Size = new System.Drawing.Size(103, 23);
       this.btnDeleteObject.TabIndex = 8;
@@ -304,6 +329,8 @@ namespace bucket.manager
       this.Controls.Add(this.btnUpload);
       this.Controls.Add(this.btnCreateBucket);
       this.Controls.Add(this.btnRefreshToken);
+      this.Controls.Add(this.label3);
+      this.Controls.Add(this.cmbRegion);
       this.Controls.Add(this.groupBox1);
       this.Controls.Add(this.treeBuckets);
       this.Name = "Form1";
@@ -329,6 +356,8 @@ namespace bucket.manager
     private System.Windows.Forms.Label label2;
     private System.Windows.Forms.TextBox txtClientId;
     private System.Windows.Forms.TextBox txtTimeout;
+    private System.Windows.Forms.ComboBox cmbRegion;
+    private System.Windows.Forms.Label label3;
     private System.Windows.Forms.Button btnRefreshToken;
     private System.Windows.Forms.Button btnCreateBucket;
     private System.Windows.Forms.Button btnUpload;
