@@ -45,7 +45,10 @@ namespace bucket.manager
 
     public void InitBrowser()
     {
-      Cef.Initialize(new CefSettings());
+      var settings = new CefSettings();
+      //settings.CefCommandLineArgs.Add("enable-gpu", "1");
+      //settings.CefCommandLineArgs.Add("enable-webgl", "1");
+      Cef.Initialize(settings);
       browser = new ChromiumWebBrowser("file:///HTML/Viewer.html"); // CefSharp needs a initial page...
 
       browser.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
