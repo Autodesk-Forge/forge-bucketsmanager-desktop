@@ -112,23 +112,19 @@ namespace bucket.manager
 
       // control GetBucket pagination
       string lastBucket = null;
-      int itemCount = 0;
 
-      // get buckets until returned list length < 100
+      Buckets buckets = null;
       do
       {
-        Buckets buckets = (await bucketApi.GetBucketsAsync(cmbRegion.Text, 100, lastBucket)).ToObject<Buckets>();
-        itemCount += buckets.Items.Count;
-
+        buckets = (await bucketApi.GetBucketsAsync(cmbRegion.Text, 100, lastBucket)).ToObject<Buckets>();
         foreach (var bucket in buckets.Items)
         {
           TreeNode nodeBucket = new TreeNode(bucket.BucketKey);
           nodeBucket.Tag = bucket.BucketKey;
           treeBuckets.Nodes.Add(nodeBucket);
-
           lastBucket = bucket.BucketKey; // after the loop, this will contain the last bucketKey
         }
-      } while ((itemCount % 100) == 0); // while GetBuckets returns 100, we need to get next page
+      } while (buckets.Items.Count > 0);
 
       // for each bucket, show the objects
       foreach (TreeNode n in treeBuckets.Nodes)
