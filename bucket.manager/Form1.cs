@@ -69,22 +69,29 @@ namespace bucket.manager
     {
       if (string.IsNullOrWhiteSpace(txtClientId.Text) || string.IsNullOrWhiteSpace(txtClientSecret.Text)) return;
 
-      // get the access token
-      TwoLeggedApi oAuth = new TwoLeggedApi();
-      Bearer token = (await oAuth.AuthenticateAsync(
-        txtClientId.Text,
-        txtClientSecret.Text,
-        oAuthConstants.CLIENT_CREDENTIALS,
-        new Scope[] { Scope.BucketRead, Scope.BucketCreate, Scope.DataRead, Scope.DataWrite })).ToObject<Bearer>();
-      txtAccessToken.Text = token.AccessToken;
-      _expiresAt = DateTime.Now.AddSeconds(token.ExpiresIn.Value);
+      try
+      {
+        // get the access token
+        TwoLeggedApi oAuth = new TwoLeggedApi();
+        Bearer token = (await oAuth.AuthenticateAsync(
+          txtClientId.Text,
+          txtClientSecret.Text,
+          oAuthConstants.CLIENT_CREDENTIALS,
+          new Scope[] { Scope.BucketRead, Scope.BucketCreate, Scope.DataRead, Scope.DataWrite })).ToObject<Bearer>();
+        txtAccessToken.Text = token.AccessToken;
+        _expiresAt = DateTime.Now.AddSeconds(token.ExpiresIn.Value);
 
-      // keep track on time
-      _tokenTimer.Tick += new EventHandler(tickTokenTimer);
-      _tokenTimer.Interval = 1000;
-      _tokenTimer.Enabled = true;
+        // keep track on time
+        _tokenTimer.Tick += new EventHandler(tickTokenTimer);
+        _tokenTimer.Interval = 1000;
+        _tokenTimer.Enabled = true;
 
-      btnRefreshToken_Click(null, null);
+        btnRefreshToken_Click(null, null);
+      } catch (Exception ex)
+      {
+        MessageBox.Show(ex.Message, "Exception when authenticating", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+
     }
 
     void tickTokenTimer(object sender, EventArgs e)
@@ -107,29 +114,35 @@ namespace bucket.manager
     {
       treeBuckets.Nodes.Clear();
 
-      BucketsApi bucketApi = new BucketsApi();
-      bucketApi.Configuration.AccessToken = AccessToken;
-
-      // control GetBucket pagination
-      string lastBucket = null;
-
-      Buckets buckets = null;
-      do
+      try
       {
-        buckets = (await bucketApi.GetBucketsAsync(cmbRegion.Text, 100, lastBucket)).ToObject<Buckets>();
-        foreach (var bucket in buckets.Items)
-        {
-          TreeNode nodeBucket = new TreeNode(bucket.BucketKey);
-          nodeBucket.Tag = bucket.BucketKey;
-          treeBuckets.Nodes.Add(nodeBucket);
-          lastBucket = bucket.BucketKey; // after the loop, this will contain the last bucketKey
-        }
-      } while (buckets.Items.Count > 0);
+        BucketsApi bucketApi = new BucketsApi();
+        bucketApi.Configuration.AccessToken = AccessToken;
 
-      // for each bucket, show the objects
-      foreach (TreeNode n in treeBuckets.Nodes)
-        if (n != null) // async?
-          await ShowBucketObjects(n);
+        // control GetBucket pagination
+        string lastBucket = null;
+
+        Buckets buckets = null;
+        do
+        {
+          buckets = (await bucketApi.GetBucketsAsync(cmbRegion.Text, 100, lastBucket)).ToObject<Buckets>();
+          foreach (var bucket in buckets.Items)
+          {
+            TreeNode nodeBucket = new TreeNode(bucket.BucketKey);
+            nodeBucket.Tag = bucket.BucketKey;
+            treeBuckets.Nodes.Add(nodeBucket);
+            lastBucket = bucket.BucketKey; // after the loop, this will contain the last bucketKey
+          }
+        } while (buckets.Items.Count > 0);
+
+        // for each bucket, show the objects
+        foreach (TreeNode n in treeBuckets.Nodes)
+          if (n != null) // async?
+            await ShowBucketObjects(n);
+      } catch (Exception ex)
+			{
+        MessageBox.Show(ex.Message, "Exception when refreshing token", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
     }
 
     private async Task ShowBucketObjects(TreeNode nodeBucket)
@@ -158,83 +171,88 @@ namespace bucket.manager
         MessageBox.Show("Please select a bucket", "Bucket required", MessageBoxButtons.OK, MessageBoxIcon.Error);
         return;
       }
-      string bucketKey = treeBuckets.SelectedNode.Text;
-
-      // ask user to select file
-      OpenFileDialog formSelectFile = new OpenFileDialog();
-      formSelectFile.Multiselect = false;
-      if (formSelectFile.ShowDialog() != DialogResult.OK) return;
-      string filePath = formSelectFile.FileName;
-      string objectKey = Path.GetFileName(filePath);
-
-      ObjectsApi objects = new ObjectsApi();
-      objects.Configuration.AccessToken = AccessToken;
-
-      // get file size
-      long fileSize = (new FileInfo(filePath)).Length;
-
-      // show progress bar for upload
-      progressBar.DisplayStyle = ProgressBarDisplayText.CustomText;
-      progressBar.Show();
-      progressBar.Value = 0;
-      progressBar.Minimum = 0;
-      progressBar.CustomText = "Preparing to upload file...";
-
-      // decide if upload direct or resumable (by chunks)
-      if (fileSize > UPLOAD_CHUNK_SIZE * 1024 * 1024) // upload in chunks
+      try
       {
-        long chunkSize = 2 * 1024 * 1024; // 2 Mb
-        long numberOfChunks = (long)Math.Round((double)(fileSize / chunkSize)) + 1;
+        string bucketKey = treeBuckets.SelectedNode.Text;
 
-        progressBar.Maximum = (int)numberOfChunks;
+        // ask user to select file
+        OpenFileDialog formSelectFile = new OpenFileDialog();
+        formSelectFile.Multiselect = false;
+        if (formSelectFile.ShowDialog() != DialogResult.OK) return;
+        string filePath = formSelectFile.FileName;
+        string objectKey = Path.GetFileName(filePath);
 
-        long start = 0;
-        chunkSize = (numberOfChunks > 1 ? chunkSize : fileSize);
-        long end = chunkSize;
-        string sessionId = Guid.NewGuid().ToString();
+        ObjectsApi objects = new ObjectsApi();
+        objects.Configuration.AccessToken = AccessToken;
 
-        // upload one chunk at a time
-        using (BinaryReader reader = new BinaryReader(new FileStream(filePath, FileMode.Open)))
+        // get file size
+        long fileSize = (new FileInfo(filePath)).Length;
+
+        // show progress bar for upload
+        progressBar.DisplayStyle = ProgressBarDisplayText.CustomText;
+        progressBar.Show();
+        progressBar.Value = 0;
+        progressBar.Minimum = 0;
+        progressBar.CustomText = "Preparing to upload file...";
+
+        // decide if upload direct or resumable (by chunks)
+        if (fileSize > UPLOAD_CHUNK_SIZE * 1024 * 1024) // upload in chunks
         {
-          for (int chunkIndex = 0; chunkIndex < numberOfChunks; chunkIndex++)
+          long chunkSize = 2 * 1024 * 1024; // 2 Mb
+          long numberOfChunks = (long)Math.Round((double)(fileSize / chunkSize)) + 1;
+
+          progressBar.Maximum = (int)numberOfChunks;
+
+          long start = 0;
+          chunkSize = (numberOfChunks > 1 ? chunkSize : fileSize);
+          long end = chunkSize;
+          string sessionId = Guid.NewGuid().ToString();
+
+          // upload one chunk at a time
+          using (BinaryReader reader = new BinaryReader(new FileStream(filePath, FileMode.Open)))
           {
-            string range = string.Format("bytes {0}-{1}/{2}", start, end, fileSize);
+            for (int chunkIndex = 0; chunkIndex < numberOfChunks; chunkIndex++)
+            {
+              string range = string.Format("bytes {0}-{1}/{2}", start, end, fileSize);
 
-            long numberOfBytes = chunkSize + 1;
-            byte[] fileBytes = new byte[numberOfBytes];
-            MemoryStream memoryStream = new MemoryStream(fileBytes);
-            reader.BaseStream.Seek((int)start, SeekOrigin.Begin);
-            int count = reader.Read(fileBytes, 0, (int)numberOfBytes);
-            memoryStream.Write(fileBytes, 0, (int)numberOfBytes);
-            memoryStream.Position = 0;
+              long numberOfBytes = chunkSize + 1;
+              byte[] fileBytes = new byte[numberOfBytes];
+              MemoryStream memoryStream = new MemoryStream(fileBytes);
+              reader.BaseStream.Seek((int)start, SeekOrigin.Begin);
+              int count = reader.Read(fileBytes, 0, (int)numberOfBytes);
+              memoryStream.Write(fileBytes, 0, (int)numberOfBytes);
+              memoryStream.Position = 0;
 
-            dynamic chunkUploadResponse = await objects.UploadChunkAsync(bucketKey, objectKey, (int)numberOfBytes, range, sessionId, memoryStream);
+              dynamic chunkUploadResponse = await objects.UploadChunkAsync(bucketKey, objectKey, (int)numberOfBytes, range, sessionId, memoryStream);
 
-            start = end + 1;
-            chunkSize = ((start + chunkSize > fileSize) ? fileSize - start - 1 : chunkSize);
-            end = start + chunkSize;
+              start = end + 1;
+              chunkSize = ((start + chunkSize > fileSize) ? fileSize - start - 1 : chunkSize);
+              end = start + chunkSize;
 
-            progressBar.CustomText = string.Format("{0} Mb uploaded...", (chunkIndex * chunkSize) / 1024 / 1024);
-            progressBar.Value = chunkIndex;
+              progressBar.CustomText = string.Format("{0} Mb uploaded...", (chunkIndex * chunkSize) / 1024 / 1024);
+              progressBar.Value = chunkIndex;
+            }
           }
-        }
-      }
-      else // upload in a single call
-      {
-        using (StreamReader streamReader = new StreamReader(filePath))
+        } else // upload in a single call
         {
-          progressBar.Value = 50; // random...
-          progressBar.Maximum = 100;
-          dynamic uploadedObj = await objects.UploadObjectAsync(bucketKey,
-                 objectKey, (int)streamReader.BaseStream.Length, streamReader.BaseStream,
-                 "application/octet-stream");
+          using (StreamReader streamReader = new StreamReader(filePath))
+          {
+            progressBar.Value = 50; // random...
+            progressBar.Maximum = 100;
+            dynamic uploadedObj = await objects.UploadObjectAsync(bucketKey,
+                   objectKey, (int)streamReader.BaseStream.Length, streamReader.BaseStream,
+                   "application/octet-stream");
+          }
+
         }
 
+        progressBar.Hide();
+        await ShowBucketObjects(treeBuckets.SelectedNode);
+        treeBuckets.SelectedNode.Expand();
+      } catch (Exception ex)
+      {
+        MessageBox.Show(ex.Message, "Exception when uploading", MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
-
-      progressBar.Hide();
-      await ShowBucketObjects(treeBuckets.SelectedNode);
-      treeBuckets.SelectedNode.Expand();
     }
 
     private void Form1_Load(object sender, EventArgs e)
@@ -263,10 +281,12 @@ namespace bucket.manager
         MessageBox.Show("Please select an object", "Objects required", MessageBoxButtons.OK, MessageBoxIcon.Error);
         return;
       }
-      string urn = (string)treeBuckets.SelectedNode.Tag;
+      try
+      {
+        string urn = (string)treeBuckets.SelectedNode.Tag;
 
-      // prepare a SVF translation
-      List<JobPayloadItem> outputs = new List<JobPayloadItem>()
+        // prepare a SVF translation
+        List<JobPayloadItem> outputs = new List<JobPayloadItem>()
       {
        new JobPayloadItem(
          JobPayloadItem.TypeEnum.Svf,
@@ -276,29 +296,33 @@ namespace bucket.manager
            JobPayloadItem.ViewsEnum._3d
          })
       };
-      JobPayload job;
-      //if (string.IsNullOrEmpty(objModel.rootFilename))
-      job = new JobPayload(new JobPayloadInput(urn), new JobPayloadOutput(outputs));
-      //else
-      //  job = new JobPayload(new JobPayloadInput(objModel.objectKey, true, objModel.rootFilename), new JobPayloadOutput(outputs));
+        JobPayload job;
+        //if (string.IsNullOrEmpty(objModel.rootFilename))
+        job = new JobPayload(new JobPayloadInput(urn), new JobPayloadOutput(outputs));
+        //else
+        //  job = new JobPayload(new JobPayloadInput(objModel.objectKey, true, objModel.rootFilename), new JobPayloadOutput(outputs));
 
-      // start progress bar for translation
-      progressBar.Show();
-      progressBar.Value = 0;
-      progressBar.Minimum = 0;
-      progressBar.Maximum = 100;
-      progressBar.CustomText = "Starting translation job...";
+        // start progress bar for translation
+        progressBar.Show();
+        progressBar.Value = 0;
+        progressBar.Minimum = 0;
+        progressBar.Maximum = 100;
+        progressBar.CustomText = "Starting translation job...";
 
-      // start translation job
-      DerivativesApi derivative = new DerivativesApi();
-      derivative.Configuration.AccessToken = AccessToken;
-      dynamic jobPosted = await derivative.TranslateAsync(job, true);
+        // start translation job
+        DerivativesApi derivative = new DerivativesApi();
+        derivative.Configuration.AccessToken = AccessToken;
+        dynamic jobPosted = await derivative.TranslateAsync(job, true);
 
-      // start a monitor job to follow the translation
-      _translationTimer.Tick += new EventHandler(isTranslationReady);
-      _translationTimer.Tag = urn;
-      _translationTimer.Interval = 5000;
-      _translationTimer.Enabled = true;
+        // start a monitor job to follow the translation
+        _translationTimer.Tick += new EventHandler(isTranslationReady);
+        _translationTimer.Tag = urn;
+        _translationTimer.Interval = 5000;
+        _translationTimer.Enabled = true;
+      } catch (Exception ex)
+      {
+        MessageBox.Show(ex.Message, "Exception when translating", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
     }
 
     private async void isTranslationReady(object sender, EventArgs e)
@@ -331,16 +355,21 @@ namespace bucket.manager
         MessageBox.Show("Please select an object", "Objects required", MessageBoxButtons.OK, MessageBoxIcon.Error);
         return;
       }
+      try
+      {
+        if (MessageBox.Show("This objects will be permantly delete, confirm?", "Are you sure?",
+          MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+          return;
 
-      if (MessageBox.Show("This objects will be permantly delete, confirm?", "Are you sure?",
-        MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
-        return;
-
-      // call API to delete object on the bucket
-      ObjectsApi objects = new ObjectsApi();
-      objects.Configuration.AccessToken = AccessToken;
-      await objects.DeleteObjectAsync((string)treeBuckets.SelectedNode.Parent.Tag, (string)treeBuckets.SelectedNode.Text);
-      await ShowBucketObjects(treeBuckets.SelectedNode.Parent);
+        // call API to delete object on the bucket
+        ObjectsApi objects = new ObjectsApi();
+        objects.Configuration.AccessToken = AccessToken;
+        await objects.DeleteObjectAsync((string)treeBuckets.SelectedNode.Parent.Tag, (string)treeBuckets.SelectedNode.Text);
+        await ShowBucketObjects(treeBuckets.SelectedNode.Parent);
+      } catch (Exception ex)
+      {
+        MessageBox.Show(ex.Message, "Exception when deleting", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
     }
 
     private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -362,12 +391,18 @@ namespace bucket.manager
       string bucketKey = string.Empty;
       if (Prompt.ShowDialog("Enter bucket name: ", "Create new bucket", txtClientId.Text.ToLower() + DateTime.Now.Ticks.ToString(), out bucketKey) == DialogResult.OK)
       {
-        BucketsApi buckets = new BucketsApi();
-        buckets.Configuration.AccessToken = AccessToken;
-        PostBucketsPayload bucketPayload = new PostBucketsPayload(bucketKey.ToLower(), null, PostBucketsPayload.PolicyKeyEnum.Transient);
-        await buckets.CreateBucketAsync(bucketPayload, cmbRegion.Text);
+        try
+        {
+          BucketsApi buckets = new BucketsApi();
+          buckets.Configuration.AccessToken = AccessToken;
+          PostBucketsPayload bucketPayload = new PostBucketsPayload(bucketKey.ToLower(), null, PostBucketsPayload.PolicyKeyEnum.Transient);
+          await buckets.CreateBucketAsync(bucketPayload, cmbRegion.Text);
 
-        btnRefreshToken_Click(null, null);
+          btnRefreshToken_Click(null, null);
+        } catch (Exception ex)
+        {
+          MessageBox.Show(ex.Message, "Exception when creating bucket", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
       }
     }
 
@@ -384,62 +419,67 @@ namespace bucket.manager
         MessageBox.Show("Please select an object", "Objects required", MessageBoxButtons.OK, MessageBoxIcon.Error);
         return;
       }
-      string urn = (string)treeBuckets.SelectedNode.Tag;
-
-      // select a folder to download the files
-      string folderPath = string.Empty;
-      using (var fbd = new FolderBrowserDialog())
+      try
       {
-        if (fbd.ShowDialog() != DialogResult.OK || string.IsNullOrWhiteSpace(fbd.SelectedPath)) return;
-        folderPath = fbd.SelectedPath;
-        folderPath = Path.Combine(folderPath, treeBuckets.SelectedNode.Text);
-        if (Directory.Exists(folderPath)) Directory.Delete(folderPath, true);
-        Directory.CreateDirectory(folderPath);
-      }
+        string urn = (string)treeBuckets.SelectedNode.Tag;
 
-      // prepare the UI
-      progressBar.Show();
-      progressBar.DisplayStyle = ProgressBarDisplayText.CustomText;
-      progressBar.Value = 0;
-      progressBar.CustomText = "Starting extraction...";
+        // select a folder to download the files
+        string folderPath = string.Empty;
+        using (var fbd = new FolderBrowserDialog())
+        {
+          if (fbd.ShowDialog() != DialogResult.OK || string.IsNullOrWhiteSpace(fbd.SelectedPath)) return;
+          folderPath = fbd.SelectedPath;
+          folderPath = Path.Combine(folderPath, treeBuckets.SelectedNode.Text);
+          if (Directory.Exists(folderPath)) Directory.Delete(folderPath, true);
+          Directory.CreateDirectory(folderPath);
+        }
 
-      // get the list of resources to download
-      List<ForgeUtils.Derivatives.Resource> resourcesToDownload = await ForgeUtils.Derivatives.ExtractSVFAsync(urn, AccessToken);
+        // prepare the UI
+        progressBar.Show();
+        progressBar.DisplayStyle = ProgressBarDisplayText.CustomText;
+        progressBar.Value = 0;
+        progressBar.CustomText = "Starting extraction...";
 
-      // update the UI
-      progressBar.Minimum = 0;
-      progressBar.Maximum = resourcesToDownload.Count;
-      progressBar.Step = 1;
+        // get the list of resources to download
+        List<ForgeUtils.Derivatives.Resource> resourcesToDownload = await ForgeUtils.Derivatives.ExtractSVFAsync(urn, AccessToken);
 
-      IRestClient client = new RestClient("https://developer.api.autodesk.com/");
-      foreach (ForgeUtils.Derivatives.Resource resource in resourcesToDownload)
+        // update the UI
+        progressBar.Minimum = 0;
+        progressBar.Maximum = resourcesToDownload.Count;
+        progressBar.Step = 1;
+
+        IRestClient client = new RestClient("https://developer.api.autodesk.com/");
+        foreach (ForgeUtils.Derivatives.Resource resource in resourcesToDownload)
+        {
+          progressBar.PerformStep();
+          progressBar.CustomText = "Downloading " + resource.FileName;
+
+          // prepare the GET to download the file
+          RestRequest request = new RestRequest(resource.RemotePath, Method.GET);
+          request.AddHeader("Authorization", "Bearer " + AccessToken);
+          request.AddHeader("Accept-Encoding", "gzip, deflate");
+          IRestResponse response = await client.ExecuteTaskAsync(request);
+
+          if (response.StatusCode != System.Net.HttpStatusCode.OK)
+          {
+            // something went wrong with this file...
+            MessageBox.Show(string.Format("Error downloading {0}: {1}",
+              resource.FileName, response.StatusCode.ToString()));
+
+            // any other action?
+          } else
+          {
+            // combine with selected local path
+            string pathToSave = Path.Combine(folderPath, resource.LocalPath);
+            // ensure local dir exists
+            Directory.CreateDirectory(Path.GetDirectoryName(pathToSave));
+            // save file
+            File.WriteAllBytes(pathToSave, response.RawBytes);
+          }
+        }
+      } catch (Exception ex)
       {
-        progressBar.PerformStep();
-        progressBar.CustomText = "Downloading " + resource.FileName;
-
-        // prepare the GET to download the file
-        RestRequest request = new RestRequest(resource.RemotePath, Method.GET);
-        request.AddHeader("Authorization", "Bearer " + AccessToken);
-        request.AddHeader("Accept-Encoding", "gzip, deflate");
-        IRestResponse response = await client.ExecuteTaskAsync(request);
-
-        if (response.StatusCode != System.Net.HttpStatusCode.OK)
-        {
-          // something went wrong with this file...
-          MessageBox.Show(string.Format("Error downloading {0}: {1}",
-            resource.FileName, response.StatusCode.ToString()));
-
-          // any other action?
-        }
-        else
-        {
-          // combine with selected local path
-          string pathToSave = Path.Combine(folderPath, resource.LocalPath);
-          // ensure local dir exists
-          Directory.CreateDirectory(Path.GetDirectoryName(pathToSave));
-          // save file
-          File.WriteAllBytes(pathToSave, response.RawBytes);
-        }
+        MessageBox.Show(ex.Message, "Exception when downloading svf", MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
 
       progressBar.Hide();
