@@ -130,12 +130,13 @@ namespace bucket.manager.ForgeUtils
     private static async Task<JObject> GetDerivativeAsync(string manifest, string accessToken)
     {
       // prepare to download the file
-      IRestClient client = new RestClient(BASE_URL);
-      RestRequest request = new RestRequest(DERIVATIVE_PATH + "{manifest}", Method.GET);
+      var client = new RestClient(BASE_URL);
+      RestRequest request = new RestRequest(DERIVATIVE_PATH + "{manifest}");
+      request.Method = Method.Get;
       request.AddParameter("manifest", manifest, ParameterType.UrlSegment);
       request.AddHeader("Authorization", "Bearer " + accessToken);
       request.AddHeader("Accept-Encoding", "gzip, deflate");
-      IRestResponse response = await client.ExecuteTaskAsync(request);
+      var response = await client.ExecuteGetAsync(request);
 
       JObject manifestJson = null;
 
