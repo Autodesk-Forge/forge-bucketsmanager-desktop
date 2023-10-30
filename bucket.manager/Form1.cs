@@ -411,17 +411,18 @@ namespace bucket.manager
       progressBar.Maximum = resourcesToDownload.Count;
       progressBar.Step = 1;
 
-      IRestClient client = new RestClient("https://developer.api.autodesk.com/");
+      var client = new RestClient("https://developer.api.autodesk.com/");
       foreach (ForgeUtils.Derivatives.Resource resource in resourcesToDownload)
       {
         progressBar.PerformStep();
         progressBar.CustomText = "Downloading " + resource.FileName;
 
         // prepare the GET to download the file
-        RestRequest request = new RestRequest(resource.RemotePath, Method.GET);
+        RestRequest request = new RestRequest(resource.RemotePath);
+        request.Method = Method.Get;
         request.AddHeader("Authorization", "Bearer " + AccessToken);
         request.AddHeader("Accept-Encoding", "gzip, deflate");
-        IRestResponse response = await client.ExecuteTaskAsync(request);
+        var response = await client.ExecuteGetAsync(request);
 
         if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
